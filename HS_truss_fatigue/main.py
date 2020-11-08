@@ -10,9 +10,9 @@ st.markdown("The purpose of this worksheet is to determine the allowable stresse
 
 #Create section picker in streamlit sidebar
 chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS"))
-b0,d0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord")
+b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord")
 brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
-b1,d1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace")
+b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace")
 
 #Create Truss geometry input in streamlit sidebar
 st.sidebar.markdown('## Truss Geometry:')
@@ -22,11 +22,17 @@ L_chord = st.sidebar.slider('Length of Chord (mm)',100,30000,2000,step=100,forma
 div_chord = st.sidebar.slider('Chord divisions',1,20,10,step=1,format='%i')
 
 #Calculate Dimensional parameters beta, gamma and tau, check compliant
+st.write('## Dimensional Parameters')
 dim_params_latex, dim_params = fnc.dim_params(b0=b0,t0=t0,b1=b1,t1=t1)
 st.latex(dim_params_latex)
 beta, twogamma, tau = dim_params
 
-#Dimension parameter values
-fig,ax = fnc.beta_chart(b0,t0,b1,t1)
+#Plot dimension parameters
+fig,ax = fnc.dim_params_plot(b0,t0,b1,t1)
 st.pyplot(fig)
 
+#Calculate overlap
+st.write('## Calculate overlap')
+st.image(r"../data/overlap_calculation.png")
+Ov_latex, Ov = fnc.overlap(L_chord,chordspacing,div_chord,e,h0,h1)
+st.latex(Ov_latex)
