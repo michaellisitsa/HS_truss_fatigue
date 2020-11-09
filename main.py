@@ -28,7 +28,7 @@ st.latex(dim_params_latex)
 beta, twogamma, tau = dim_params
 
 #Plot dimension parameters
-fig,ax = fnc.dim_params_plot(b0,t0,b1,t1)
+fig,ax = fnc.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000)
 st.pyplot(fig)
 
 #Calculate overlap
@@ -45,8 +45,15 @@ The follow calculations determine the Stress Concentration Factors (SCF) for eac
 - LC1 chord -> $SCF_{ch,ax}$
 - LC1 brace -> $SCF_{b,ax}$
 - LC2 chord -> $SCF_{ch,ch}$""")
-st.latex("SCF_{chax}")
 
+st.latex("SCF_{chax}")
 SCF_chax_latex, SCF_chax = fnc.SCF_chax(beta,twogamma,tau,Ov,theta)
 st.latex(SCF_chax_latex)
-st.write(SCF_chax)
+
+st.latex("SCF_{bax}")
+SCF_bax_latex, SCF_bax = fnc.SCF_bax(beta,twogamma,tau,Ov,theta)
+st.latex(SCF_bax_latex)
+
+st.latex("SCF_{chch}")
+SCF_chch_latex,SCF_chch = fnc.SCF_chch(beta)
+st.latex(SCF_chch_latex)

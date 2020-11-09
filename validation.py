@@ -17,7 +17,7 @@ def pass_fail(value,lessthan=None,greaterthan=None):
             st.write('Util = ',greaterthan/value)
     if passing:
         st.write("**PASS**")
-    else:        
+    else:
         st.write("**FAIL**")
 
 def hs_lookup(hs_type,member_type):
