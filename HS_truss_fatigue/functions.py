@@ -1,8 +1,6 @@
 from math import sqrt
 from handcalcs import handcalc
 from math import sqrt, cos, sin, pi, atan, tan
-import sectionproperties.pre.sections as sections
-from sectionproperties.analysis.cross_section import CrossSection
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt

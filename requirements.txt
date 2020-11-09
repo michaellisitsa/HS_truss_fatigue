@@ -1,0 +1,4 @@
+handcalcs
+numpy
+pandas
+matplotlib
