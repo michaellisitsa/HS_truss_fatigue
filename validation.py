@@ -21,8 +21,8 @@ def pass_fail(value,lessthan=None,greaterthan=None):
         st.write("**FAIL**")
 
 def hs_lookup(hs_type,member_type):
-    shs = pd.read_csv(r"../data/SHS.csv",header=0)
-    rhs = pd.read_csv(r"../data/RHS.csv",header=0)
+    shs = pd.read_csv(r"data/SHS.csv",header=0)
+    rhs = pd.read_csv(r"data/RHS.csv",header=0)
     if hs_type == "SHS":
         options = st.sidebar.selectbox("",shs,key=member_type)
         hs_chosen = shs[shs['Dimensions'] == options]

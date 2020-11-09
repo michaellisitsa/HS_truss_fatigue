@@ -33,6 +33,6 @@ st.pyplot(fig)
 
 #Calculate overlap
 st.write('## Calculate overlap')
-st.image(r"../data/overlap_calculation.png")
+st.image(r"data/overlap_calculation.png")
 Ov_latex, Ov = fnc.overlap(L_chord,chordspacing,div_chord,e,h0,h1)
 st.latex(Ov_latex)
