@@ -34,5 +34,19 @@ st.pyplot(fig)
 #Calculate overlap
 st.write('## Calculate overlap')
 st.image(r"data/overlap_calculation.png")
-Ov_latex, Ov = fnc.overlap(L_chord,chordspacing,div_chord,e,h0,h1)
-st.latex(Ov_latex)
+overlap_latex, overlap_outputs = fnc.overlap(L_chord,chordspacing,div_chord,e,h0,h1)
+Ov,theta = overlap_outputs
+st.latex(overlap_latex)
+
+#Calculate SCF values
+st.write("""## SCF Calculations
+
+The follow calculations determine the Stress Concentration Factors (SCF) for each:
+- LC1 chord -> $SCF_{ch,ax}$
+- LC1 brace -> $SCF_{b,ax}$
+- LC2 chord -> $SCF_{ch,ch}$""")
+st.latex("SCF_{chax}")
+
+SCF_chax_latex, SCF_chax = fnc.SCF_chax(beta,twogamma,tau,Ov,theta)
+st.latex(SCF_chax_latex)
+st.write(SCF_chax)

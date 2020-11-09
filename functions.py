@@ -69,4 +69,11 @@ def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1):
     x = (0.5*h0 + eccentricity) / tan(theta) #Projection of Intersection
     q = p - 2 * x #Overlap Projection
     Ov = q / p #Overlap, where 50\% <= Ov <= 100\%
-    return Ov
+    return Ov, theta
+
+@handcalc(override="long")
+def SCF_chax(beta,twogamma,tau,Ov,theta):
+    SCF_chaxpt1 = (0.5+ 2.38 * beta - 2.87 * beta**2 + 2.18 * beta * Ov + 0.39 * Ov - 1.43 * sin(theta))
+    SCF_chaxpt2 =  (twogamma**0.29 * tau**0.7 * Ov**(0.73-5.53*sin(theta)**2) * sin(theta)**(-0.4-0.08*Ov))
+    SCF_chax = SCF_chaxpt1 * SCF_chaxpt2 #Balanced Loading condition Chord Forces
+    return SCF_chax
