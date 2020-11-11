@@ -11,6 +11,7 @@ st.markdown("The purpose of this worksheet is to determine the allowable stresse
     The CIDECT 8 design guide is adopted. It can be downloaded at: https://www.cidect.org/design-guides/")
 
 #Create section picker in streamlit sidebar
+st.sidebar.markdown("## Hollow Section Sizes")
 chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS"))
 b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord")
 brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
@@ -22,6 +23,17 @@ e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
 chordspacing = st.sidebar.slider('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
 L_chord = st.sidebar.slider('Length of Chord (mm)',100,30000,2000,step=100,format='%i') / 1000
 div_chord = st.sidebar.slider('Chord divisions',1,20,10,step=1,format='%i')
+
+#Create Force Inputs
+st.sidebar.markdown('## Input Forces')
+P_chord = st.sidebar.number_input("P_chord (kN)",value=100,step=10)
+P_brace = st.sidebar.number_input("P_brace (kN)",value=50,step=10)
+M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=50,step=10)
+M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=50,step=10)
+
+#SCF out of plane
+st.sidebar.markdown('## SCF Manual input')
+SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
 
 #Calculate Dimensional parameters beta, gamma and tau, check compliant
 st.write('## Dimensional Parameters')
@@ -59,3 +71,24 @@ st.latex(SCF_bax_latex)
 st.latex("SCF_{chch}")
 SCF_chch_latex,SCF_chch = fnc.SCF_chch(beta)
 st.latex(SCF_chch_latex)
+
+st.write("""## Nominal Stress Ranges
+
+Nominal stresses are obtained by getting:
+- principal stresses 
+- outer fiber bending stresses of each element defined in Sec 3.3.
+
+### Axial Stresses - Chord""")
+
+chord_ax_stresses_latex, chord_ax_stresses = fnc.chord_ax_stresses(SCF_chax,SCF_chch,P_brace * u.kN,P_chord * u.kN,theta,A_chord * u.m**2)
+st.latex(chord_ax_stresses_latex)
+sigma_chord1P, sigma_chord2P = chord_ax_stresses
+
+st.write("### Bending Moment Stresses - Chord")
+chord_BM_stresses_latex, chord_BM_stresses = fnc.chord_BM_stresses(
+        h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
+        M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
+        Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
+st.latex(chord_BM_stresses_latex)
+sigma_chordM_ip, sigma_chordM_op = chord_BM_stresses
+

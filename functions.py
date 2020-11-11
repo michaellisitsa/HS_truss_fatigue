@@ -91,3 +91,17 @@ def SCF_bax(beta,twogamma,tau,Ov,theta):
 def SCF_chch(beta):
     SCF_chch = 1.2 + 1.46 * beta - 0.028 * beta**2 #Unbalanced loading condition Chord Forces
     return SCF_chch
+
+@handcalc(override="long")
+def chord_ax_stresses(SCF_chax,SCF_chch,P_brace,P_chord,theta,A_chord):
+    sigma_chord1P = SCF_chax * (P_brace * cos(theta)) / A_chord
+    sigma_chord2P = SCF_chch * (P_chord - P_brace * cos(theta))/ A_chord
+    return sigma_chord1P, sigma_chord2P
+
+@handcalc(override="long")
+def chord_BM_stresses(h0,b0,b1,SCF_chch,SCF_ch_op,M_ip_chord,M_op_chord,Ix_chord,Iy_chord):
+    y_ip_chord = h0/2 #Dist from NA to top/bottom of brace
+    y_op_chord = (b0-b1)/2 #Dist from NA to left/right of brace
+    sigma_chordM_ip = SCF_chch * (M_ip_chord * y_ip_chord) / Ix_chord
+    sigma_chordM_op = SCF_ch_op * (M_op_chord * y_op_chord) / Iy_chord
+    return sigma_chordM_ip, sigma_chordM_op
