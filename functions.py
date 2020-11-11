@@ -101,7 +101,7 @@ def chord_ax_stresses(SCF_chax,SCF_chch,P_brace,P_chord,theta,A_chord):
 @handcalc(override="long")
 def chord_BM_stresses(h0,b0,b1,SCF_chch,SCF_ch_op,M_ip_chord,M_op_chord,Ix_chord,Iy_chord):
     y_ip_chord = h0/2 #Dist from NA to top/bottom of brace
-    y_op_chord = (b0-b1)/2 #Dist from NA to left/right of brace
+    y_op_chord = b1/2 #Dist from NA to left/right of brace
     sigma_chordM_ip = SCF_chch * (M_ip_chord * y_ip_chord) / Ix_chord
     sigma_chordM_op = SCF_ch_op * (M_op_chord * y_op_chord) / Iy_chord
     return sigma_chordM_ip, sigma_chordM_op
