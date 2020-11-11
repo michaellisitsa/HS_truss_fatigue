@@ -4,6 +4,8 @@ from math import sqrt, cos, sin, pi, atan, tan
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import forallpeople as u
+u.environment('structural')
 
 @handcalc(override="long")
 def dim_params(b0,t0,b1,t1):

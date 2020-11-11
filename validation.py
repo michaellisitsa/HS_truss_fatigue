@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import forallpeople as u
+u.environment('structural')
 
 def pass_fail(value,lessthan=None,greaterthan=None):
     passing = True
@@ -35,7 +37,7 @@ def hs_lookup(hs_type,member_type):
     area = hs_chosen.iloc[0]['Area'] / 1000**2
     I_x =  hs_chosen.iloc[0]['Ix'] / 1000**4
     try:
-        I_y =  hs_chosen.iloc[0]['Iy']
+        I_y =  hs_chosen.iloc[0]['Iy'] / 1000**4
     except:
         I_y = I_x
     return b,h,t,area,I_x,I_y

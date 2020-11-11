@@ -2,3 +2,4 @@ handcalcs
 numpy
 pandas
 matplotlib
+forallpeople

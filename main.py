@@ -2,6 +2,8 @@ import streamlit as st
 import functions as fnc
 import validation as vld
 import pandas as pd
+import forallpeople as u
+u.environment('structural')
 
 #Create Title Markdown
 st.title("CIDECT-8 Fatigue - K-joint Trusses")
@@ -23,7 +25,7 @@ div_chord = st.sidebar.slider('Chord divisions',1,20,10,step=1,format='%i')
 
 #Calculate Dimensional parameters beta, gamma and tau, check compliant
 st.write('## Dimensional Parameters')
-dim_params_latex, dim_params = fnc.dim_params(b0=b0,t0=t0,b1=b1,t1=t1)
+dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m)
 st.latex(dim_params_latex)
 beta, twogamma, tau = dim_params
 
@@ -34,7 +36,7 @@ st.pyplot(fig)
 #Calculate overlap
 st.write('## Calculate overlap')
 st.image(r"data/overlap_calculation.png")
-overlap_latex, overlap_outputs = fnc.overlap(L_chord,chordspacing,div_chord,e,h0,h1)
+overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m)
 Ov,theta = overlap_outputs
 st.latex(overlap_latex)
 
