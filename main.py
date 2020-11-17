@@ -4,6 +4,7 @@ import validation as vld
 import pandas as pd
 import forallpeople as u
 u.environment('structural')
+import matplotlib.pyplot as plt
 
 #Create Title Markdown
 st.title("CIDECT-8 Fatigue - K-joint Trusses")
@@ -21,19 +22,25 @@ b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace")
 st.sidebar.markdown('## Truss Geometry:')
 e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
 chordspacing = st.sidebar.slider('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
-L_chord = st.sidebar.slider('Length of Chord (mm)',100,30000,2000,step=100,format='%i') / 1000
-div_chord = st.sidebar.slider('Chord divisions',1,20,10,step=1,format='%i')
+L_chord = st.sidebar.slider('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
+div_chord = st.sidebar.slider('Chord divisions',1,20,4,step=1,format='%i')
 
 #Create Force Inputs
 st.sidebar.markdown('## Input Forces')
 P_chord = st.sidebar.number_input("P_chord (kN)",value=100,step=10)
 P_brace = st.sidebar.number_input("P_brace (kN)",value=50,step=10)
-M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=50,step=10)
-M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=50,step=10)
+M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=10,step=10)
+M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=10,step=10)
+M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=10,step=10)
+
+#Create max stress
+st.sidebar.markdown('## Allowable Stress')
+sigma_max = st.sidebar.number_input("$sigma_{MAX}$ (MPa)",value=24,step=5)
 
 #SCF out of plane
 st.sidebar.markdown('## SCF Manual input')
 SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
+SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
 
 #Calculate Dimensional parameters beta, gamma and tau, check compliant
 st.write('## Dimensional Parameters')
@@ -80,7 +87,12 @@ Nominal stresses are obtained by getting:
 
 ### Axial Stresses - Chord""")
 
-chord_ax_stresses_latex, chord_ax_stresses = fnc.chord_ax_stresses(SCF_chax,SCF_chch,P_brace * u.kN,P_chord * u.kN,theta,A_chord * u.m**2)
+chord_ax_stresses_latex, chord_ax_stresses = fnc.chord_ax_stresses(SCF_chax,
+                                                                    SCF_chch,
+                                                                    P_brace * u.kN,
+                                                                    P_chord * u.kN,
+                                                                    theta,
+                                                                    A_chord * u.m**2)
 st.latex(chord_ax_stresses_latex)
 sigma_chord1P, sigma_chord2P = chord_ax_stresses
 
@@ -92,3 +104,23 @@ chord_BM_stresses_latex, chord_BM_stresses = fnc.chord_BM_stresses(
 st.latex(chord_BM_stresses_latex)
 sigma_chordM_ip, sigma_chordM_op = chord_BM_stresses
 
+st.write("### Stresses - Brace")
+brace_stresses_latex, brace_stresses = fnc.brace_stresses(b1 * u.m, 
+                                                        SCF_bax,
+                                                        P_brace * u.kN,
+                                                        A_brace * u.m**2,
+                                                        SCF_br_op,
+                                                        M_op_brace * u.kN * u.m,
+                                                        Iy_brace * 10**6 * u.m**4)
+st.latex(brace_stresses_latex)
+sigma_brace_1P, sigma_braceM_op = brace_stresses
+
+#Stresses Bar Charts
+fig1, ax1 = fnc.bar_chart(sigma_chord1P.value*10**-6, 
+                        sigma_chord2P.value*10**-6, 
+                        sigma_chordM_ip.value*10**-6, 
+                        sigma_chordM_op.value*10**-6,
+                        sigma_brace_1P.value*10**-6, 
+                        sigma_braceM_op.value*10**-6,
+                        sigma_max)
+st.pyplot(fig1)

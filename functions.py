@@ -105,3 +105,47 @@ def chord_BM_stresses(h0,b0,b1,SCF_chch,SCF_ch_op,M_ip_chord,M_op_chord,Ix_chord
     sigma_chordM_ip = SCF_chch * (M_ip_chord * y_ip_chord) / Ix_chord
     sigma_chordM_op = SCF_ch_op * (M_op_chord * y_op_chord) / Iy_chord
     return sigma_chordM_ip, sigma_chordM_op
+
+@handcalc(override="long")
+def brace_stresses(b1, SCF_bax,P_brace,A_brace,SCF_br_op,M_op_brace,Iy_brace):
+    sigma_brace_1P = SCF_bax * P_brace / A_brace
+    z_op_brace = b1 / 2
+    sigma_braceM_op = SCF_br_op * M_op_brace * z_op_brace / Iy_brace
+    return sigma_brace_1P, sigma_braceM_op
+
+
+def bar_chart(sigma_chord1P, 
+                sigma_chord2P, 
+                sigma_chordM_ip, 
+                sigma_chordM_op, 
+                sigma_brace_1P, 
+                sigma_braceM_op, 
+                sigma_max):
+    fig, ax = plt.subplots()
+    members = ['chord','brace']
+    sigma_1P = [sigma_chord1P,sigma_brace_1P]
+    sigma_2P = [sigma_chord2P,0]
+    sigma_M_ip = [sigma_chordM_ip,0]
+    sigma_M_op = [sigma_chordM_op,sigma_braceM_op]
+    y_pos = np.arange(len(members))
+    # horizontal line indicating the threshold
+    ax.plot([sigma_max, sigma_max],[-0.5, 1.5], "k--",label="$\sigma_{MAX}$")
+
+    #Add stacked elements
+    sigma_1and2 = np.add(sigma_1P, sigma_2P).tolist()
+    sigma_1to3 = np.add(np.add(sigma_1P, sigma_2P), sigma_M_ip).tolist()
+
+
+    ax.barh(y_pos,sigma_1P,left=0,label=r"$\sigma_{ax}$ - Balanced LC")
+    ax.barh(y_pos,sigma_2P,left=sigma_1P,label=r"$\sigma_{ax}$ - Unbalanced LC")
+    ax.barh(y_pos,sigma_M_ip,left=sigma_1and2,label=r"$\sigma_{Mip}$ - Unbalanced LC")
+    ax.barh(y_pos,sigma_M_op,left=sigma_1to3,label=r"$\sigma_{Mop}$")
+    plt.yticks(y_pos, members)
+    ax.set_ylabel("Members")
+    ax.set_xlabel("Stresses (MPa)")
+    ax.legend(loc="best")
+    ax.set_title("Member Stresses")
+    ax.set_xlim(left=0)
+    ax.plot([])
+
+    return fig, ax
