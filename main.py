@@ -11,6 +11,10 @@ st.title("CIDECT-8 Fatigue - K-joint Trusses")
 st.markdown("The purpose of this worksheet is to determine the allowable stresses at the K-Joints of the trusses.\n\
     The CIDECT 8 design guide is adopted. It can be downloaded at: https://www.cidect.org/design-guides/")
 
+# Out of order Results Summary
+st.header("Results Summary")
+results_container = st.beta_container()
+
 #Create section picker in streamlit sidebar
 st.sidebar.markdown("## Hollow Section Sizes")
 chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS"))
@@ -50,7 +54,7 @@ beta, twogamma, tau = dim_params
 
 #Plot dimension parameters
 fig,ax = fnc.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000)
-st.pyplot(fig)
+# st.pyplot(fig) - dimensions checks plotted at top of document
 
 #Calculate overlap
 st.write('## Calculate overlap')
@@ -82,6 +86,7 @@ st.write("### $SCF_{chch}$")
 SCF_chch_latex,SCF_chch = fnc.SCF_chch(beta)
 st.latex(SCF_chch_latex)
 
+#Calculate Stresses:
 st.write("""## Nominal Stress Ranges
 
 Nominal stresses are obtained by getting:
@@ -118,6 +123,17 @@ brace_stresses_latex, brace_stresses = fnc.brace_stresses(b1 * u.m,
 st.latex(brace_stresses_latex)
 sigma_brace_1P, sigma_braceM_op = brace_stresses
 
+#Cumulative Stresses
+cum_stresses_latex, cum_stresses = fnc.cum_stresses(sigma_chord1P,
+                sigma_chord2P,
+                sigma_chordM_ip,
+                sigma_chordM_op,
+                sigma_brace_1P,
+                sigma_braceM_op)
+sigma_chord, sigma_brace = cum_stresses
+st.markdown("### TOTAL Stresses")
+st.latex(cum_stresses_latex)
+
 #Stresses Bar Charts
 fig1, ax1 = fnc.bar_chart(sigma_chord1P.value*10**-6, 
                         sigma_chord2P.value*10**-6, 
@@ -126,4 +142,16 @@ fig1, ax1 = fnc.bar_chart(sigma_chord1P.value*10**-6,
                         sigma_brace_1P.value*10**-6, 
                         sigma_braceM_op.value*10**-6,
                         sigma_max)
-st.pyplot(fig1)
+#st.pyplot(fig1) # stress checks plotted at top of document
+
+#Results Summary in sidebar
+results_container.pyplot(fig)
+if 0.35 <= beta < 1.0 and 10 <= twogamma <= 35 and 0.25 <= tau <= 1:
+    results_container.success("PASS - Dimensions are within allowable limits")
+else:
+    results_container.error("FAIL - Dimensions exceed allowable limits")
+results_container.pyplot(fig1)
+if sigma_chord <= sigma_max * u.MPa and sigma_brace <= sigma_max * u.MPa:
+    results_container.success("PASS - Stresses are within allowable limits")
+else:
+    results_container.error("FAIL - Stresses exceed allowable limits")

@@ -113,13 +113,18 @@ def brace_stresses(b1, SCF_bax,P_brace,A_brace,SCF_br_op,M_op_brace,Iy_brace):
     sigma_braceM_op = SCF_br_op * M_op_brace * z_op_brace / Iy_brace
     return sigma_brace_1P, sigma_braceM_op
 
+@handcalc(override="long")
+def cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,sigma_chordM_op,sigma_brace_1P,sigma_braceM_op):
+    sigma_chord = sum((sigma_chord1P, sigma_chord2P, sigma_chordM_ip, sigma_chordM_op))
+    sigma_brace = sum((sigma_brace_1P,sigma_braceM_op))
+    return sigma_chord, sigma_brace
 
-def bar_chart(sigma_chord1P, 
-                sigma_chord2P, 
-                sigma_chordM_ip, 
-                sigma_chordM_op, 
-                sigma_brace_1P, 
-                sigma_braceM_op, 
+def bar_chart(sigma_chord1P,
+                sigma_chord2P,
+                sigma_chordM_ip,
+                sigma_chordM_op,
+                sigma_brace_1P,
+                sigma_braceM_op,
                 sigma_max):
     fig, ax = plt.subplots()
     members = ['chord','brace']
