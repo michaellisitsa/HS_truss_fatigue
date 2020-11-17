@@ -75,16 +75,16 @@ def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1):
 
 @handcalc(override="long")
 def SCF_chax(beta,twogamma,tau,Ov,theta):
-    SCF_chaxpt1 = (0.5+ 2.38 * beta - 2.87 * beta**2 + 2.18 * beta * Ov + 0.39 * Ov - 1.43 * sin(theta))
-    SCF_chaxpt2 =  (twogamma**0.29 * tau**0.7 * Ov**(0.73-5.53*sin(theta)**2) * sin(theta)**(-0.4-0.08*Ov))
-    SCF_chax = SCF_chaxpt1 * SCF_chaxpt2 #Balanced Loading condition Chord Forces
+    pt1 = (0.5+ 2.38 * beta - 2.87 * beta**2 + 2.18 * beta * Ov + 0.39 * Ov - 1.43 * sin(theta))
+    pt2 =  (twogamma**0.29 * tau**0.7 * Ov**(0.73-5.53*sin(theta)**2) * sin(theta)**(-0.4-0.08*Ov))
+    SCF_chax = pt1 * pt2 #Balanced Loading condition Chord Forces
     return SCF_chax
 
 @handcalc(override="long")
 def SCF_bax(beta,twogamma,tau,Ov,theta):
-    SCF_baxpt1 = 0.15 + 1.1 * beta - 0.48 * beta**2 - 0.14 / Ov
-    SCF_baxpt2 = twogamma**0.55 * tau**(-0.3) * Ov**(-2.57 + 1.62 * beta**2) * sin(theta)**0.31
-    SCF_bax = SCF_baxpt1 * SCF_baxpt2 #Balanced Loading condition Brace Forces
+    pt1 = 0.15 + 1.1 * beta - 0.48 * beta**2 - 0.14 / Ov
+    pt2 = twogamma**0.55 * tau**(-0.3) * Ov**(-2.57 + 1.62 * beta**2) * sin(theta)**0.31
+    SCF_bax = pt1 * pt2 #Balanced Loading condition Brace Forces
     return SCF_bax
 
 @handcalc(override="long")

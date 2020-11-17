@@ -69,15 +69,16 @@ The follow calculations determine the Stress Concentration Factors (SCF) for eac
 - LC1 brace -> $SCF_{b,ax}$
 - LC2 chord -> $SCF_{ch,ch}$""")
 
-st.latex("SCF_{chax}")
+#Calculate stress concentration factors for the chord
+st.write("### $SCF_{chax}$")
 SCF_chax_latex, SCF_chax = fnc.SCF_chax(beta,twogamma,tau,Ov,theta)
 st.latex(SCF_chax_latex)
 
-st.latex("SCF_{bax}")
+st.write("### $SCF_{bax}$")
 SCF_bax_latex, SCF_bax = fnc.SCF_bax(beta,twogamma,tau,Ov,theta)
 st.latex(SCF_bax_latex)
 
-st.latex("SCF_{chch}")
+st.write("### $SCF_{chch}$")
 SCF_chch_latex,SCF_chch = fnc.SCF_chch(beta)
 st.latex(SCF_chch_latex)
 
