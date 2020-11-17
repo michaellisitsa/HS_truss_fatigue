@@ -54,7 +54,9 @@ st.pyplot(fig)
 
 #Calculate overlap
 st.write('## Calculate overlap')
-st.image(r"data/overlap_calculation.png")
+with st.beta_expander("Expand for sketch describing overlap calculations:"):
+    st.image(r"data/overlap_calculation.png",use_column_width=True)
+st.beta_container()
 overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m)
 Ov,theta = overlap_outputs
 st.latex(overlap_latex)
