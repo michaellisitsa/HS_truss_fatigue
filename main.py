@@ -146,7 +146,7 @@ fig1, ax1 = fnc.bar_chart(sigma_chord1P.value*10**-6,
 
 #Results Summary in sidebar
 results_container.pyplot(fig)
-if 0.35 <= beta < 1.0 and 10 <= twogamma <= 35 and 0.25 <= tau <= 1:
+if 0.35 <= beta <= 1.0 and 10 <= twogamma <= 35 and 0.25 <= tau <= 1:
     results_container.success("PASS - Dimensions are within allowable limits")
 else:
     results_container.error("FAIL - Dimensions exceed allowable limits")
