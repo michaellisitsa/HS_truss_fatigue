@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import forallpeople as u
 u.environment('structural')
+from PIL import Image
 
 @handcalc(override="long")
 def dim_params(b0,t0,b1,t1):
@@ -154,3 +155,9 @@ def bar_chart(sigma_chord1P,
     ax.plot([])
 
     return fig, ax
+
+#Load Images
+@st.cache
+def load_image(image_file):
+    img = Image.open(image_file)
+    return img

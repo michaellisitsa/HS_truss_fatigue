@@ -5,12 +5,39 @@ import pandas as pd
 import forallpeople as u
 u.environment('structural')
 import matplotlib.pyplot as plt
+from streamlit_drawable_canvas import st_canvas
 
 #Create Title Markdown
 st.title("CIDECT-8 Fatigue - K-joint Trusses")
 st.markdown("The purpose of this worksheet is to determine the allowable stresses at the K-Joints of the trusses.\n\
     The CIDECT 8 design guide is adopted. It can be downloaded at: https://www.cidect.org/design-guides/")
 
+#Create Menu for various options
+menu = ["Write","Draw","Upload image"]
+input_options = []
+with st.beta_expander("Click here to add custom description, sketch or image"):
+    for i in menu:
+        input_options.append(st.checkbox(i))
+    if input_options[0]:
+        st.text_area("Write a description:",key="write_area")
+    if input_options[1]:
+        #Provide drawing canvas
+        stroke_color = st.sidebar.color_picker("Stroke color hex: ")
+        canvas_result = st_canvas(
+            fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
+            stroke_width=1,
+            stroke_color=stroke_color,
+            update_streamlit=True,
+            height=300,
+            drawing_mode="freedraw",
+            key="canvas")
+    if input_options[2]:
+        st.subheader("Custom image:")
+        image_file = st.file_uploader("Upload Images",
+            type=["png","jpg","jpeg"])
+        if image_file is not None:
+            st.image(fnc.load_image(image_file),use_column_width=True)
+        
 # Out of order Results Summary
 st.header("Results Summary")
 results_container = st.beta_container()
