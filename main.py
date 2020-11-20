@@ -22,10 +22,11 @@ with st.beta_expander("Click here to add custom description, sketch or image"):
         st.text_area("Write a description:",key="write_area")
     if input_options[1]:
         #Provide drawing canvas
-        stroke_color = st.sidebar.color_picker("Stroke color hex: ")
+        stroke_color = st.color_picker("Stroke color hex: ")
+        stroke_width = st.number_input("Stroke width: ", 1, 6, 1)
         canvas_result = st_canvas(
             fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
-            stroke_width=1,
+            stroke_width=stroke_width,
             stroke_color=stroke_color,
             update_streamlit=True,
             height=300,
