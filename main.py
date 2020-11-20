@@ -28,7 +28,7 @@ with st.beta_expander("Click here to add custom description, sketch or image"):
             fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
             stroke_width=stroke_width,
             stroke_color=stroke_color,
-            update_streamlit=True,
+            update_streamlit=False,
             height=300,
             drawing_mode="freedraw",
             key="canvas")
