@@ -9,6 +9,7 @@ from streamlit_drawable_canvas import st_canvas
 
 #Main function calls made at each run of Streamlit
 def main():
+    """This function is run at each launch of streamlit"""
     #Create Title Markdown
     st.title("CIDECT-8 Fatigue - K-joint Trusses")
     st.markdown("The purpose of this worksheet is to determine the allowable stresses at the K-Joints of the trusses.\n\
