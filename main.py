@@ -64,11 +64,11 @@ def main():
 
     #Create Force Inputs
     st.sidebar.markdown('## Input Forces')
-    P_chord = st.sidebar.number_input("P_chord (kN)",value=100,step=10)
+    P_chord = st.sidebar.number_input("P_chord (kN)",value=70,step=10)
     P_brace = st.sidebar.number_input("P_brace (kN)",value=50,step=10)
-    M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=10,step=10)
-    M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=10,step=10)
-    M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=10,step=10)
+    M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=5,step=10)
+    M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=5,step=10)
+    M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=5,step=10)
 
     #Create max stress
     st.sidebar.markdown('## Allowable Stress')
@@ -99,8 +99,7 @@ def main():
     st.latex(overlap_latex)
 
     #Calculate SCF values
-    st.write("""## SCF Calculations
-
+    st.markdown("""## SCF Calculations
     The follow calculations determine the Stress Concentration Factors (SCF) for each:
     - LC1 chord -> $SCF_{ch,ax}$
     - LC1 brace -> $SCF_{b,ax}$
@@ -120,7 +119,7 @@ def main():
     st.latex(SCF_chch_latex)
 
     #Calculate Stresses:
-    st.write("""## Nominal Stress Ranges
+    st.markdown("""## Nominal Stress Ranges
 
     Nominal stresses are obtained by getting:
     - principal stresses 

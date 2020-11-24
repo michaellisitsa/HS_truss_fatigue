@@ -108,7 +108,7 @@ def SCF_chch(beta):
 def chord_ax_stresses(SCF_chax,SCF_chch,P_brace,P_chord,theta,A_chord):
     """Calculate the axial stresses in the 
     chords for both balanced (1) and unbalanced (2) load conditions"""
-    sigma_chord1P = SCF_chax * (P_brace * cos(theta)) / A_chord
+    sigma_chord1P = SCF_chax * P_brace / A_chord
     sigma_chord2P = SCF_chch * (P_chord - P_brace * cos(theta))/ A_chord
     return sigma_chord1P, sigma_chord2P
 
