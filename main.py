@@ -132,7 +132,8 @@ def main():
                                                                         P_brace * u.kN,
                                                                         P_chord * u.kN,
                                                                         theta,
-                                                                        A_chord * u.m**2)
+                                                                        A_chord * u.m**2,
+                                                                        A_brace * u.m**2)
     st.latex(chord_ax_stresses_latex)
     sigma_chord1P, sigma_chord2P = chord_ax_stresses
 

@@ -41,3 +41,4 @@ def hs_lookup(hs_type,member_type):
     except:
         I_y = I_x
     return b,h,t,area,I_x,I_y
+    
