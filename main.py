@@ -1,11 +1,19 @@
+#Import streamlit modules
 import streamlit as st
+from streamlit_drawable_canvas import st_canvas
+
+#Import associated py files with functions
 import functions as fnc
 import validation as vld
+import plots
+
+#Import data and plotting
 import pandas as pd
+import matplotlib.pyplot as plt
+
+#Import unit aware modules
 import forallpeople as u
 u.environment('structural')
-import matplotlib.pyplot as plt
-from streamlit_drawable_canvas import st_canvas
 
 #Main function calls made at each run of Streamlit
 def main():
@@ -86,7 +94,7 @@ def main():
     beta, twogamma, tau = dim_params
 
     #Plot dimension parameters
-    fig,ax = fnc.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000)
+    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000)
     # dimensions checks plotted at top of document
 
     #Calculate overlap
@@ -168,7 +176,7 @@ def main():
     st.latex(cum_stresses_latex)
 
     #Stresses Bar Charts
-    fig1, ax1 = fnc.bar_chart(sigma_chord1P.value*10**-6, 
+    fig1, ax1 = plots.bar_chart(sigma_chord1P.value*10**-6, 
                             sigma_chord2P.value*10**-6, 
                             sigma_chordM_ip.value*10**-6, 
                             sigma_chordM_op.value*10**-6,
