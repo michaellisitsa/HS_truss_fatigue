@@ -1,6 +1,5 @@
 #Import streamlit modules
 import streamlit as st
-from streamlit_drawable_canvas import st_canvas
 
 #Import associated py files with functions
 import functions as fnc
@@ -24,34 +23,7 @@ def main():
         The CIDECT 8 design guide is adopted. It can be downloaded at: https://www.cidect.org/design-guides/")
 
     #Create Menu for various options
-    input_methods = ["Write","Draw","Upload image"]
-    input_options = []
-    with st.beta_expander("Click here to add custom description, sketch or image"):
-        input_methods_cols = st.beta_columns(3)
-        for ind,inputs in enumerate(input_methods):
-            input_options.append(input_methods_cols[ind].checkbox(inputs))
-        if input_options[0]:
-            st.text_area("Write a description:",key="write_area")
-        if input_options[1]:
-            #Provide drawing canvas
-            draw_cols = st.beta_columns(2)
-            stroke_width = draw_cols[0].number_input("Stroke width: ", 1, 6, 3)
-            stroke_color = draw_cols[1].color_picker("Stroke color: ")
-            canvas_result = st_canvas(
-                fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
-                stroke_width=stroke_width,
-                stroke_color=stroke_color,
-                update_streamlit=False,
-                height=300,
-                drawing_mode="freedraw",
-                key="canvas")
-        if input_options[2]:
-            st.subheader("Custom image:")
-            image_file = st.file_uploader("Upload Images",
-                type=["png","jpg","jpeg"])
-            if image_file is not None:
-                st.image(fnc.load_image(image_file),use_column_width=True)
-            
+    vld.input_description("Click here to add custom description, sketch or image")
     # Out of order Results Summary
     st.header("Results Summary")
     results_container = st.beta_container()
