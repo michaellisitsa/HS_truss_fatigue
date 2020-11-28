@@ -44,15 +44,15 @@ def main():
 
     #Create Force Inputs
     st.sidebar.markdown('## Input Forces')
-    P_chord = st.sidebar.number_input("P_chord (kN)",value=70,step=10)
-    P_brace = st.sidebar.number_input("P_brace (kN)",value=50,step=10)
-    M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=5,step=10)
-    M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=5,step=10)
-    M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=5,step=10)
+    P_chord = st.sidebar.number_input("P_chord (kN)",value=70.0,step=10.0)
+    P_brace = st.sidebar.number_input("P_brace (kN)",value=50.0,step=10.0)
+    M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=5.0,step=10.0)
+    M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=5.0,step=10.0)
+    M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=5.0,step=10.0)
 
     #Create max stress
     st.sidebar.markdown('## Allowable Stress')
-    sigma_max = st.sidebar.number_input("$sigma_{MAX}$ (MPa)",value=24,step=5)
+    sigma_max = st.sidebar.number_input("$sigma_{MAX}$ (MPa)",value=24.0,step=1.0)
 
     #SCF out of plane
     st.sidebar.markdown('## SCF Manual input')
