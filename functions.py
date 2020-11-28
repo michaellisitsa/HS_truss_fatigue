@@ -4,7 +4,6 @@ from math import sqrt, cos, sin, pi, atan, tan
 import streamlit as st
 import forallpeople as u
 u.environment('structural')
-from PIL import Image
 
 @handcalc(override="long")
 def dim_params(b0,t0,b1,t1):
@@ -16,7 +15,7 @@ def dim_params(b0,t0,b1,t1):
     return beta, twogamma, tau
 
 @handcalc(override="long")
-def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1):
+def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1,t0):
     """Calculate the overlap percentage 
     'Ov' to be used in the calculation"""
     h_truss = chordspacing + 2 * eccentricity #Height of truss adjusted by eccentricity.
@@ -26,32 +25,64 @@ def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1):
     p = h1 / sin(theta) #Projected width of brace
     x = (0.5*h0 + eccentricity) / tan(theta) #Projection of Intersection
     q = p - 2 * x #Overlap Projection
-    Ov = q / p #Overlap, where 50\% <= Ov <= 100\%
-    return Ov, theta
+    g_prime = -1 * q/t0 #Ratio of gap to chord thickness
+    Ov = q / p #Overlap
+    return Ov, theta, g_prime
 
 @handcalc(override="long")
-def SCF_chax(beta,twogamma,tau,Ov,theta):
+def SCF_chax_overlap(beta,twogamma,tau,Ov,theta):
     """Calculate the stress concentration 
-    factor for balanced condition (1) axial stresses in the chord"""
-    pt1 = (0.5+ 2.38 * beta - 2.87 * beta**2 + 2.18 * beta * Ov + 0.39 * Ov - 1.43 * sin(theta))
-    pt2 =  (twogamma**0.29 * tau**0.7 * Ov**(0.73-5.53*sin(theta)**2) * sin(theta)**(-0.4-0.08*Ov))
+    factor for balanced condition (1) axial stresses in the chord
+    overlap joint"""
+    pt1 = 0.5+ 2.38 * beta - 2.87 * beta**2 + 2.18 * beta * Ov + 0.39 * Ov - 1.43 * sin(theta)
+    pt2 = twogamma**0.29 * tau**0.7 * Ov**(0.73-5.53*sin(theta)**2) * sin(theta)**(-0.4-0.08*Ov)
     SCF_chax = pt1 * pt2 #Balanced Loading condition Chord Forces
     return SCF_chax
 
 @handcalc(override="long")
-def SCF_bax(beta,twogamma,tau,Ov,theta):
+def SCF_chax_gap(beta,twogamma,tau,g_prime,theta):
     """Calculate the stress concentration 
-    factor for balanced condition (1) axial stresses in the brace"""
+    factor for balanced condition (1) axial stresses in the chord
+    gap joint"""
+    pt1 = 0.48 * beta - 0.5 * beta**2 - 0.012 / beta + 0.012 / g_prime
+    pt2 =  twogamma**1.72 * tau**0.78 * g_prime**0.2 * sin(theta)**2.09
+    SCF_chax = pt1 * pt2 #Balanced Loading condition Chord Forces
+    return SCF_chax
+
+@handcalc(override="long")
+def SCF_bax_overlap(beta,twogamma,tau,Ov,theta):
+    """Calculate the stress concentration 
+    factor for balanced condition (1) axial stresses in the brace
+    overlap joint"""
     pt1 = 0.15 + 1.1 * beta - 0.48 * beta**2 - 0.14 / Ov
     pt2 = twogamma**0.55 * tau**(-0.3) * Ov**(-2.57 + 1.62 * beta**2) * sin(theta)**0.31
     SCF_bax = pt1 * pt2 #Balanced Loading condition Brace Forces
     return SCF_bax
 
 @handcalc(override="long")
-def SCF_chch(beta):
+def SCF_bax_gap(beta,twogamma,tau,theta):
     """Calculate the stress concentration 
-    factor for unbalanced condition (2) stresses in the chord"""
+    factor for balanced condition (1) axial stresses in the brace
+    gap joint"""
+    pt1 = -0.008 + 0.45 * beta - 0.34 * beta**2
+    pt2 = twogamma**1.36 * tau**(-0.66) * sin(theta)**1.29
+    SCF_bax = pt1 * pt2 #Balanced Loading condition Brace Forces
+    return SCF_bax
+
+@handcalc(override="long")
+def SCF_chch_overlap(beta):
+    """Calculate the stress concentration 
+    factor for unbalanced condition (2) stresses in the chord
+    overlap joint"""
     SCF_chch = 1.2 + 1.46 * beta - 0.028 * beta**2 #Unbalanced loading condition Chord Forces
+    return SCF_chch
+
+@handcalc(override="long")
+def SCF_chch_gap(beta,g_prime):
+    """Calculate the stress concentration 
+    factor for unbalanced condition (2) stresses in the chord
+    gap joint"""
+    SCF_chch = (2.45 + 1.23 * beta) * g_prime**-0.27 #Unbalanced loading condition Chord Forces
     return SCF_chch
 
 @handcalc(override="long")
@@ -89,11 +120,3 @@ def cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,sigma_chordM_op,sig
     sigma_chord = sum((sigma_chord1P, sigma_chord2P, sigma_chordM_ip, sigma_chordM_op))
     sigma_brace = sum((sigma_brace_1P,sigma_braceM_op))
     return sigma_chord, sigma_brace
-
-#Load Images
-@st.cache
-def load_image(image_file):
-    """Display images using Pillow that 
-    have been added via the streamlit file_uploader"""
-    img = Image.open(image_file)
-    return img

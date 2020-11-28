@@ -1,5 +1,4 @@
 import streamlit as st
-from handcalcs import handcalc
 
 import numpy as np
 import matplotlib.pyplot as plt

@@ -61,6 +61,8 @@ def main():
 
     #Calculate Dimensional parameters beta, gamma and tau, check compliant
     st.write('## Dimensional Parameters')
+    with st.beta_expander("Expand for sketch describing truss dimensions:"):
+        st.image(r"data/geometric_parameters.png",use_column_width=True)
     dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m)
     st.latex(dim_params_latex)
     beta, twogamma, tau = dim_params
@@ -73,9 +75,10 @@ def main():
     st.write('## Calculate overlap')
     with st.beta_expander("Expand for sketch describing overlap calculations:"):
         st.image(r"data/overlap_calculation.png",use_column_width=True)
+        st.image(r"data/gap_calculation.jpg",use_column_width=True)
     st.beta_container()
-    overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m)
-    Ov,theta = overlap_outputs
+    overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
+    Ov,theta,g_prime = overlap_outputs
     st.latex(overlap_latex)
 
     #Calculate SCF values
@@ -85,18 +88,38 @@ def main():
     - LC1 brace -> $SCF_{b,ax}$
     - LC2 chord -> $SCF_{ch,ch}$""")
 
-    #Calculate stress concentration factors for the chord
-    st.write("### $SCF_{chax}$")
-    SCF_chax_latex, SCF_chax = fnc.SCF_chax(beta,twogamma,tau,Ov,theta)
-    st.latex(SCF_chax_latex)
+    #Calculate stress concentration factors
+    if 0.5 <= Ov <= 1.0:
+        st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
+        st.write("### $SCF_{chax}$")
+        SCF_chax_latex, SCF_chax = fnc.SCF_chax_overlap(beta,twogamma,tau,Ov,theta)
+        st.latex(SCF_chax_latex)
+        st.write("### $SCF_{bax}$")
+        SCF_bax_latex, SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
+        st.latex(SCF_bax_latex)
+        st.write("### $SCF_{chch}$")
+        SCF_chch_latex,SCF_chch = fnc.SCF_chch_overlap(beta)
+        st.latex(SCF_chch_latex)
+    elif 2 * tau <= g_prime:
+        st.header("GAP JOINT: $2 \cdot tau <= g^\prime$")
+        st.write("### $SCF_{chax}$")
+        SCF_chax_latex, SCF_chax = fnc.SCF_chax_gap(beta,twogamma,tau,g_prime,theta)
+        st.latex(SCF_chax_latex)
+        st.write("### $SCF_{bax}$")
+        SCF_bax_latex, SCF_bax = fnc.SCF_bax_gap(beta,twogamma,tau,theta)
+        st.latex(SCF_bax_latex)
+        st.write("### $SCF_{chch}$")
+        SCF_chch_latex,SCF_chch = fnc.SCF_chch_gap(beta,g_prime)
+        st.latex(SCF_chch_latex)
+    elif 0 < Ov < 0.5:
+        st.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
+        st.error("Try amending eccentricity, or truss dimensions")
+        st.stop()
+    else:
+        st.error("Gap to chord thick ratio IS NOT ACCEPTABLE $g^\prime < 2 \cdot tau$")
+        st.error("Try amending eccentricity, or truss dimensions")
+        st.stop()
 
-    st.write("### $SCF_{bax}$")
-    SCF_bax_latex, SCF_bax = fnc.SCF_bax(beta,twogamma,tau,Ov,theta)
-    st.latex(SCF_bax_latex)
-
-    st.write("### $SCF_{chch}$")
-    SCF_chch_latex,SCF_chch = fnc.SCF_chch(beta)
-    st.latex(SCF_chch_latex)
 
     #Calculate Stresses:
     st.markdown("""## Nominal Stress Ranges
