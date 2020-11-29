@@ -59,6 +59,37 @@ def main():
     SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
     SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
 
+    #Show overlap images
+    st.write('## Calculate overlap')
+    with st.beta_expander("Expand for sketch describing overlap calculations:"):
+        st.image(r"data/overlap_calculation.png",use_column_width=True)
+        st.image(r"data/gap_calculation.jpg",use_column_width=True)
+
+    #Create a container at the top of page to put results summaries into.
+    st.beta_container()
+
+    #Calculate overlap and display LATEX
+    overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
+    Ov,theta,g_prime = overlap_outputs
+    st.latex(overlap_latex)
+
+    #Plot geometry and check eccentricity
+    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+    results_container.pyplot(fig2) 
+    if -0.55 <= e/h0 <= 0.25:
+        results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
+    else:
+        results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
+        st.stop()
+
+    #If overlap is exceeding, end calculation
+    if 0 < Ov < 0.5:
+        st.error("Calculation terminated refer Results Summary for errors")
+        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+        results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
+        results_container.error("Try amending eccentricity, or truss dimensions")
+        st.stop()
+
     #Calculate Dimensional parameters beta, gamma and tau, check compliant
     st.write('## Dimensional Parameters')
     with st.beta_expander("Expand for sketch describing truss dimensions:"):
@@ -67,19 +98,27 @@ def main():
     st.latex(dim_params_latex)
     beta, twogamma, tau = dim_params
 
+    #If gap is too small, end calculation
+    if 0 <= g_prime <= 2 * tau:
+        st.error("Calculation terminated refer Results Summary for errors")
+        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+        results_container.error("Gap to chord thick ratio IS NOT ACCEPTABLE $g^\prime < 2 \cdot tau$")
+        results_container.error("Increase the gap between members, or overlap by at least 50%")
+        st.stop()
+
     #Plot dimension parameters
     fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000)
+    results_container.pyplot(fig)
     # dimensions checks plotted at top of document
 
-    #Calculate overlap
-    st.write('## Calculate overlap')
-    with st.beta_expander("Expand for sketch describing overlap calculations:"):
-        st.image(r"data/overlap_calculation.png",use_column_width=True)
-        st.image(r"data/gap_calculation.jpg",use_column_width=True)
-    st.beta_container()
-    overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
-    Ov,theta,g_prime = overlap_outputs
-    st.latex(overlap_latex)
+    #Check whether dimension parameters are exceeded and end script
+    if (0.35 <= beta <= 1.0
+        and 10 <= twogamma <= 35
+        and 0.25 <= tau <= 1.0):
+        results_container.success("PASS - Dimensions are within allowable limits")
+    else:
+        results_container.error("Dimensional Paramaters exceeded.")
+        st.stop()
 
     #Calculate SCF values
     st.markdown("""## SCF Calculations
@@ -111,21 +150,6 @@ def main():
         st.write("### $SCF_{chch}$")
         SCF_chch_latex,SCF_chch = fnc.SCF_chch_gap(beta,g_prime)
         st.latex(SCF_chch_latex)
-    elif 0 < Ov < 0.5:
-        st.error("Calculation terminated refer Results Summary for errors")
-        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
-        results_container.pyplot(fig2) #Plot truss geometry to visualise the overlap
-        results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
-        results_container.error("Try amending eccentricity, or truss dimensions")
-        st.stop()
-    else:
-        st.error("Calculation terminated refer Results Summary for errors")
-        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
-        results_container.pyplot(fig2) #Plot truss geometry to visualise insufficient gap
-        results_container.error("Gap to chord thick ratio IS NOT ACCEPTABLE $g^\prime < 2 \cdot tau$")
-        results_container.error("Try amending eccentricity, or truss dimensions")
-        st.stop()
-
 
     #Calculate Stresses:
     st.markdown("""## Nominal Stress Ranges
@@ -185,20 +209,7 @@ def main():
                             sigma_braceM_op.value*10**-6,
                             sigma_max)
 
-    #Plot geometry and check eccentricity
-    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
-    results_container.pyplot(fig2) 
-    if -0.55 <= e/h0 <= 0.25:
-        results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
-    else:
-        results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
-
     #Results Summary in sidebar
-    results_container.pyplot(fig)
-    if 0.35 <= beta <= 1.0 and 10 <= twogamma <= 35 and 0.25 <= tau <= 1:
-        results_container.success("PASS - Dimensions are within allowable limits")
-    else:
-        results_container.error("FAIL - Dimensions exceed allowable limits")
     results_container.pyplot(fig1)
     if sigma_chord <= sigma_max * u.MPa and sigma_brace <= sigma_max * u.MPa:
         results_container.success("PASS - Stresses are within allowable limits")
