@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import forallpeople as u
 u.environment('structural')
+import math
 
 def dim_params_plot(b0,t0,b1,t1):
     """Plot the dimensional variables beta, 
@@ -90,3 +91,55 @@ def bar_chart(sigma_chord1P,
     ax.plot([])
 
     return fig, ax
+
+def geom_plot(h0,theta,g_prime,t0,h1,e):
+    fig, ax = plt.subplots()
+
+    #Define variables for brace
+    length = 0.5 #Length of brace to show
+    br_top_x = length * math.cos(theta) #change in x to top of brace
+    br_top_y = length * math.sin(theta) #change in t to top of brace
+    br_bot_left_x = g_prime*t0/2.0 #bottom left intersect of brace with chord
+    p = h1/math.sin(theta)
+
+    #Plot brace shape:
+    brace1_points = [
+                [br_bot_left_x,                 h0/2],
+                [br_bot_left_x + br_top_x,      h0/2 + br_top_y],
+                [br_bot_left_x + p + br_top_x,  h0/2 + br_top_y],
+                [br_bot_left_x + p,             h0/2]
+                    ]
+    brace2_points = [
+            [-br_bot_left_x,                 h0/2],
+            [-br_bot_left_x - br_top_x,      h0/2 + br_top_y],
+            [-br_bot_left_x - p - br_top_x,  h0/2 + br_top_y],
+            [-br_bot_left_x - p,             h0/2]
+                ]
+    brace1_obj = plt.Polygon(brace1_points,fc='blue',alpha=0.4,edgecolor='black')
+    brace2_obj = plt.Polygon(brace2_points,fc='blue',alpha=0.4,edgecolor='black')
+    ax.add_patch(brace1_obj)
+    ax.add_patch(brace2_obj)
+
+    #Plot brace centerlines
+    ax.plot([0,
+                br_bot_left_x + br_top_x + p/2],
+            [-e,
+                h0/2 + br_top_y],linestyle='dashdot',color='black')
+    ax.plot([0,
+            -br_bot_left_x - br_top_x - p/2],
+        [-e,
+            h0/2 + br_top_y],linestyle='dashdot',color='black')
+    
+    #Plot chord
+    rectangle = plt.Rectangle((-(br_bot_left_x + p + br_top_x),-h0/2),
+                            2*(br_bot_left_x + p + br_top_x),h0,fc='red',alpha=0.4,edgecolor='black')
+    ax.add_patch(rectangle)
+    #ax.plot([-(br_bot_left_x + p + br_top_x),br_bot_left_x + p + br_top_x],[h0/2,h0/2])
+
+    #Figure options
+    ax.grid(True, which='both')
+    ax.axhline(y=0, color='k')
+    ax.axvline(x=0, color='k')
+    ax.set_aspect('equal')
+    return fig,ax
+    

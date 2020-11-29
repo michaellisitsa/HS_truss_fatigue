@@ -112,12 +112,18 @@ def main():
         SCF_chch_latex,SCF_chch = fnc.SCF_chch_gap(beta,g_prime)
         st.latex(SCF_chch_latex)
     elif 0 < Ov < 0.5:
-        st.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
-        st.error("Try amending eccentricity, or truss dimensions")
+        st.error("Calculation terminated refer Results Summary for errors")
+        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+        results_container.pyplot(fig2) #Plot truss geometry to visualise the overlap
+        results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
+        results_container.error("Try amending eccentricity, or truss dimensions")
         st.stop()
     else:
-        st.error("Gap to chord thick ratio IS NOT ACCEPTABLE $g^\prime < 2 \cdot tau$")
-        st.error("Try amending eccentricity, or truss dimensions")
+        st.error("Calculation terminated refer Results Summary for errors")
+        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+        results_container.pyplot(fig2) #Plot truss geometry to visualise insufficient gap
+        results_container.error("Gap to chord thick ratio IS NOT ACCEPTABLE $g^\prime < 2 \cdot tau$")
+        results_container.error("Try amending eccentricity, or truss dimensions")
         st.stop()
 
 
@@ -179,6 +185,14 @@ def main():
                             sigma_braceM_op.value*10**-6,
                             sigma_max)
 
+    #Plot geometry and check eccentricity
+    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+    results_container.pyplot(fig2) 
+    if -0.55 <= e/h0 <= 0.25:
+        results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
+    else:
+        results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
+
     #Results Summary in sidebar
     results_container.pyplot(fig)
     if 0.35 <= beta <= 1.0 and 10 <= twogamma <= 35 and 0.25 <= tau <= 1:
@@ -191,5 +205,6 @@ def main():
     else:
         results_container.error("FAIL - Stresses exceed allowable limits")
 
+    
 if __name__ == '__main__':
     main()
