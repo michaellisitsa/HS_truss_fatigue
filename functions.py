@@ -6,7 +6,7 @@ import forallpeople as u
 u.environment('structural')
 
 @handcalc(override="long")
-def dim_params(b0,t0,b1,t1):
+def dim_params(b0,t0,b1,t1,chord_type):
     """Calculate the dimensional variables beta, 
     2*gamma and tau"""
     beta = b1 / b0 #Ratio of brace to chord width, where 0.35 <= beta <= 1.0

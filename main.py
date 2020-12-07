@@ -30,11 +30,16 @@ def main():
 
     #Create section picker in streamlit sidebar
     st.sidebar.markdown("## Hollow Section Sizes")
-    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS"))
+    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"))
     b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord")
-    brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
+    if chord_type == "CHS":
+        st.sidebar.markdown("Choose Size of Brace")
+        brace_type = "CHS"
+    else:
+        brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
     b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace")
 
+    st.text(f"{b1},{h1},{t1},{A_brace},{Ix_brace},{Iy_brace}")
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')
     e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
@@ -75,7 +80,7 @@ def main():
 
     #Plot geometry and check eccentricity
     fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
-    results_container.pyplot(fig2) 
+    results_container.pyplot(fig2)
     if -0.55 <= e/h0 <= 0.25:
         results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
     else:
@@ -94,7 +99,7 @@ def main():
     st.write('## Dimensional Parameters')
     with st.beta_expander("Expand for sketch describing truss dimensions:"):
         st.image(r"data/geometric_parameters.png",use_column_width=True)
-    dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m)
+    dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
     st.latex(dim_params_latex)
     beta, twogamma, tau = dim_params
 

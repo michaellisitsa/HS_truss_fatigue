@@ -9,6 +9,7 @@ from PIL import Image
 def hs_lookup(hs_type,member_type):
     shs = pd.read_csv(r"data/SHS.csv",header=0)
     rhs = pd.read_csv(r"data/RHS.csv",header=0)
+    chs = pd.read_csv(r"data/CHS.csv",header=0)
     if hs_type == "SHS":
         options = st.sidebar.selectbox("",shs,key=member_type)
         hs_chosen = shs[shs['Dimensions'] == options]
@@ -17,13 +18,20 @@ def hs_lookup(hs_type,member_type):
         reverse_axes = st.sidebar.checkbox("Rotate 90 degrees W > H",key=member_type)
         options = st.sidebar.selectbox("",rhs,key=member_type)
         hs_chosen = rhs[rhs['Dimensions'] == options]
+    elif hs_type == "CHS":
+        options = st.sidebar.selectbox("",chs,key=member_type)
+        hs_chosen = chs[chs['Dimensions'] == options]
+        reverse_axes = False #member is symmetrical so reverse is not needed for CHS's
     if reverse_axes:
         b = hs_chosen.iloc[0]['d'] / 1000
         h = hs_chosen.iloc[0]['b'] / 1000
         I_x =  hs_chosen.iloc[0]['Iy'] / 1000**4
         I_y =  hs_chosen.iloc[0]['Ix'] / 1000**4
     else:
-        b = hs_chosen.iloc[0]['b'] / 1000
+        try:
+            b = hs_chosen.iloc[0]['b'] / 1000
+        except:
+            b = hs_chosen.iloc[0]['d'] / 1000
         h = hs_chosen.iloc[0]['d'] / 1000
         I_x =  hs_chosen.iloc[0]['Ix'] / 1000**4
         try:
