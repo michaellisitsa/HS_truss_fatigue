@@ -39,10 +39,12 @@ def main():
         brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
     b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace")
 
-    st.text(f"{b1},{h1},{t1},{A_brace},{Ix_brace},{Iy_brace}")
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')
-    e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
+    if chord_type == "CHS":
+        e = 0
+    else:
+        e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
     chordspacing = st.sidebar.slider('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
     L_chord = st.sidebar.slider('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
     div_chord = st.sidebar.slider('Chord divisions',1,20,4,step=1,format='%i')
@@ -79,23 +81,25 @@ def main():
     st.latex(overlap_latex)
 
     #Plot geometry and check eccentricity
-    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
     results_container.pyplot(fig2)
-    if -0.55 <= e/h0 <= 0.25:
-        results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
+    if chord_type=="CHS":
+        pass
     else:
-        results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
-        st.stop()
+        if -0.55 <= e/h0 <= 0.25:
+            results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
+        else:
+            results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
+            st.stop()
+        #If overlap is exceeding, end calculation
+        if 0 < Ov < 0.5:
+            st.error("Calculation terminated refer Results Summary for errors")
+            fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+            results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
+            results_container.error("Try amending eccentricity, or truss dimensions")
+            st.stop()
 
-    #If overlap is exceeding, end calculation
-    if 0 < Ov < 0.5:
-        st.error("Calculation terminated refer Results Summary for errors")
-        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
-        results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
-        results_container.error("Try amending eccentricity, or truss dimensions")
-        st.stop()
-
-    #Calculate Dimensional parameters beta, gamma and tau, check compliant
+    #Calculate Dimensional parameters beta, gamma and tau
     st.write('## Dimensional Parameters')
     with st.beta_expander("Expand for sketch describing truss dimensions:"):
         st.image(r"data/geometric_parameters.png",use_column_width=True)
@@ -112,7 +116,7 @@ def main():
         st.stop()
 
     #Plot dimension parameters
-    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000)
+    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type)
     results_container.pyplot(fig)
     # dimensions checks plotted at top of document
 
