@@ -8,30 +8,19 @@ import forallpeople as u
 u.environment('structural')
 import math
 
-def dim_params_plot(b0,t0,b1,t1,chord_type):
+def dim_params_plot(b0,t0,b1,t1,chord_type,beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max):
     """Plot the dimensional variables beta, 
     2*gamma and tau, showing the acceptable range in green highlighted area"""
     # Create Plot
     fig, ax = plt.subplots(ncols=3,figsize=(9,3))
-
-    if chord_type == "CHS":
-        beta_min = 0.3
-        beta_max = 0.6
-        twogamma_min = 24
-        twogamma_max = 60
-    else:
-        beta_min = 0.35
-        beta_max = 1.0
-        twogamma_min = 10
-        twogamma_max = 35
 
     #Plot max and min lines
     ax[0].plot([0,500],[0,beta_max * 500], label=f'$\\beta={beta_max}$', color='red') #max line
     ax[0].plot([0,500],[0.,beta_min * 500.], label=f'$\\beta={beta_min}$', color='yellow') #min line
     ax[1].plot([0,20],[0,twogamma_max * 20],label=f'$2\\cdot \\gamma = {twogamma_max}$', color='red')
     ax[1].plot([0,20],[0,twogamma_min * 20],label=f'$2\\cdot \\gamma = {twogamma_min}$', color='yellow')
-    ax[2].plot([0,20],[0,20],label=r'$\tau=1.0$', color='red')
-    ax[2].plot([0,20],[0,0.25*20],label=r'$\tau=0.25$', color='yellow')
+    ax[2].plot([0,20],[0,tau_max * 20],label=r'$\tau=1.0$', color='red')
+    ax[2].plot([0,20],[0,tau_min*20],label=r'$\tau=0.25$', color='yellow')
 
     #Plot single points for each of graph
     ax[0].plot(b0,b1,'ro',c="black")
@@ -46,7 +35,7 @@ def dim_params_plot(b0,t0,b1,t1,chord_type):
     #Create shaded region of acceptable values
     ax[0].fill_between([0,500],[0,beta_max * 500],[0,beta_min * 500], facecolor='green', alpha=0.5)
     ax[1].fill_between([0,20],[0,twogamma_max * 20],[0,twogamma_min * 20], facecolor='green', alpha=0.5)
-    ax[2].fill_between([0,20],[0,20],[0,0.25*20], facecolor='green', alpha=0.5)
+    ax[2].fill_between([0,20],[0,tau_max * 20],[0,tau_min*20], facecolor='green', alpha=0.5)
 
     #Set graph titles with allowable range
     ax[0].set_title(r'$0.35 \leq \beta(=\frac{b_1}{b_0}) \leq 1.0$',fontsize=10)

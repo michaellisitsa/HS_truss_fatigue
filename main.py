@@ -107,6 +107,20 @@ def main():
     st.latex(dim_params_latex)
     beta, twogamma, tau = dim_params
 
+    #Set limits for beta, gamma and tau
+    tau_min = 0.25
+    tau_max = 1.0
+    if chord_type == "CHS":
+        beta_min = 0.3
+        beta_max = 0.6
+        twogamma_min = 24
+        twogamma_max = 60
+    else:
+        beta_min = 0.35
+        beta_max = 1.0
+        twogamma_min = 10
+        twogamma_max = 35
+
     #If gap is too small, end calculation
     if 0 <= g_prime <= 2 * tau:
         st.error("Calculation terminated refer Results Summary for errors")
@@ -116,17 +130,17 @@ def main():
         st.stop()
 
     #Plot dimension parameters
-    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type)
+    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max)
     results_container.pyplot(fig)
     # dimensions checks plotted at top of document
 
     #Check whether dimension parameters are exceeded and end script
-    if (0.35 <= beta <= 1.0
-        and 10 <= twogamma <= 35
-        and 0.25 <= tau <= 1.0):
+    if (beta_min <= beta <= beta_max
+        and twogamma_min <= twogamma <= twogamma_max
+        and tau_min <= tau <= tau_max):
         results_container.success("PASS - Dimensions are within allowable limits")
     else:
-        results_container.error("Dimensional Paramaters exceeded.")
+        results_container.error("Dimensional Parameters exceeded.")
         st.stop()
 
     #Calculate SCF values
