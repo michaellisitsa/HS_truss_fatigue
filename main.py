@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import forallpeople as u
 u.environment('structural')
 
+import math
+
 #Main function calls made at each run of Streamlit
 def main():
     """This function is run at each launch of streamlit"""
@@ -30,14 +32,21 @@ def main():
 
     #Create section picker in streamlit sidebar
     st.sidebar.markdown("## Hollow Section Sizes")
-    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS"))
+    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"))
     b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord")
-    brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
+    if chord_type == "CHS":
+        st.sidebar.markdown("Choose Size of Brace")
+        brace_type = "CHS"
+    else:
+        brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
     b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace")
 
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')
-    e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
+    if chord_type == "CHS":
+        e = 0
+    else:
+        e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
     chordspacing = st.sidebar.slider('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
     L_chord = st.sidebar.slider('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
     div_chord = st.sidebar.slider('Chord divisions',1,20,4,step=1,format='%i')
@@ -73,30 +82,59 @@ def main():
     Ov,theta,g_prime = overlap_outputs
     st.latex(overlap_latex)
 
-    #Plot geometry and check eccentricity
-    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
-    results_container.pyplot(fig2) 
-    if -0.55 <= e/h0 <= 0.25:
-        results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
+    #Plot geometry and check eccentricity and angle
+    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
+    results_container.pyplot(fig2)
+    if chord_type=="CHS":
+        if 30*math.pi/180 < theta < 60 * math.pi/180:
+            results_container.success("PASS - Brace angle within allowable limits")
+        else:
+            results_container.error("FAIL - Angle exceeded.")
+            st.stop()
     else:
-        results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
-        st.stop()
+        if -0.55 <= e/h0 <= 0.25:
+            if 30*math.pi/180 < theta < 60 * math.pi/180:
+                results_container.success("PASS - Brace angle and eccentricity within allowable limits")
+            else:
+                results_container.error("FAIL - Angle exceeded.")
+                st.stop()
+        else:
+            if 30*math.pi/180 < theta < 60 * math.pi/180:
+                results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
+            else:
+                results_container.error("FAIL - Eccentricity and Angle exceeded.")
+                st.stop()
+            
+            st.stop()
+        #If overlap is exceeding, end calculation
+        if 0 < Ov < 0.5:
+            st.error("Calculation terminated refer Results Summary for errors")
+            fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+            results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
+            results_container.error("Try amending eccentricity, or truss dimensions")
+            st.stop()
 
-    #If overlap is exceeding, end calculation
-    if 0 < Ov < 0.5:
-        st.error("Calculation terminated refer Results Summary for errors")
-        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
-        results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
-        results_container.error("Try amending eccentricity, or truss dimensions")
-        st.stop()
-
-    #Calculate Dimensional parameters beta, gamma and tau, check compliant
+    #Calculate Dimensional parameters beta, gamma and tau
     st.write('## Dimensional Parameters')
     with st.beta_expander("Expand for sketch describing truss dimensions:"):
         st.image(r"data/geometric_parameters.png",use_column_width=True)
-    dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m)
+    dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
     st.latex(dim_params_latex)
     beta, twogamma, tau = dim_params
+
+    #Set limits for beta, gamma and tau
+    tau_min = 0.25
+    tau_max = 1.0
+    if chord_type == "CHS":
+        beta_min = 0.3
+        beta_max = 0.6
+        twogamma_min = 24
+        twogamma_max = 60
+    else:
+        beta_min = 0.35
+        beta_max = 1.0
+        twogamma_min = 10
+        twogamma_max = 35
 
     #If gap is too small, end calculation
     if 0 <= g_prime <= 2 * tau:
@@ -107,18 +145,19 @@ def main():
         st.stop()
 
     #Plot dimension parameters
-    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000)
+    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,
+                                beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max)
     results_container.pyplot(fig)
     # dimensions checks plotted at top of document
 
     #Check whether dimension parameters are exceeded and end script
-    if (0.35 <= beta <= 1.0
-        and 10 <= twogamma <= 35
-        and 0.25 <= tau <= 1.0):
+    if (beta_min <= beta <= beta_max
+        and twogamma_min <= twogamma <= twogamma_max
+        and tau_min <= tau <= tau_max):
         results_container.success("PASS - Dimensions are within allowable limits")
     else:
-        results_container.error("Dimensional Paramaters exceeded.")
-        st.stop()
+        results_container.error("FAIL - Dimensional Parameters exceeded.")
+        st.stop()    
 
     #Calculate SCF values
     st.markdown("""## SCF Calculations
@@ -127,8 +166,17 @@ def main():
     - LC1 brace -> $SCF_{b,ax}$
     - LC2 chord -> $SCF_{ch,ch}$""")
 
+    
+
     #Calculate stress concentration factors
-    if 0.5 <= Ov <= 1.0:
+    if chord_type=="CHS":
+        SCF_ochax, SCF_obax, SCF_bax_min, fig4, ax4 = fnc.SCFochax_func(beta,theta)
+        st.pyplot(fig4)
+        SCF_chaxbax_latex, SCF_chaxbax_vals = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
+                                        SCF_ochax[0],SCF_obax[0],SCF_bax_min)
+        SCF_chax,SCF_bax,SCF_chch = SCF_chaxbax_vals
+        st.latex(SCF_chaxbax_latex)
+    elif 0.5 <= Ov <= 1.0:
         st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
         st.write("### $SCF_{chax}$")
         SCF_chax_latex, SCF_chax = fnc.SCF_chax_overlap(beta,twogamma,tau,Ov,theta)
