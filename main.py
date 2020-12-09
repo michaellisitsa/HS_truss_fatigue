@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import forallpeople as u
 u.environment('structural')
 
+import math
+
 #Main function calls made at each run of Streamlit
 def main():
     """This function is run at each launch of streamlit"""
@@ -80,16 +82,29 @@ def main():
     Ov,theta,g_prime = overlap_outputs
     st.latex(overlap_latex)
 
-    #Plot geometry and check eccentricity
+    #Plot geometry and check eccentricity and angle
     fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
     results_container.pyplot(fig2)
     if chord_type=="CHS":
-        pass
+        if 30*math.pi/180 < theta < 60 * math.pi/180:
+            results_container.success("PASS - Brace angle within allowable limits")
+        else:
+            results_container.error("FAIL - Angle exceeded.")
+            st.stop()
     else:
         if -0.55 <= e/h0 <= 0.25:
-            results_container.success("PASS - Eccentricity is within allowable offset from chord centroid")
+            if 30*math.pi/180 < theta < 60 * math.pi/180:
+                results_container.success("PASS - Brace angle and eccentricity within allowable limits")
+            else:
+                results_container.error("FAIL - Angle exceeded.")
+                st.stop()
         else:
-            results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
+            if 30*math.pi/180 < theta < 60 * math.pi/180:
+                results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
+            else:
+                results_container.error("FAIL - Eccentricity and Angle exceeded.")
+                st.stop()
+            
             st.stop()
         #If overlap is exceeding, end calculation
         if 0 < Ov < 0.5:
@@ -141,8 +156,8 @@ def main():
         and tau_min <= tau <= tau_max):
         results_container.success("PASS - Dimensions are within allowable limits")
     else:
-        results_container.error("Dimensional Parameters exceeded.")
-        st.stop()
+        results_container.error("FAIL - Dimensional Parameters exceeded.")
+        st.stop()    
 
     #Calculate SCF values
     st.markdown("""## SCF Calculations
@@ -151,8 +166,17 @@ def main():
     - LC1 brace -> $SCF_{b,ax}$
     - LC2 chord -> $SCF_{ch,ch}$""")
 
+    
+
     #Calculate stress concentration factors
-    if 0.5 <= Ov <= 1.0:
+    if chord_type=="CHS":
+        SCF_ochax, SCF_obax, SCF_bax_min, fig4, ax4 = fnc.SCFochax_func(beta,theta)
+        st.pyplot(fig4)
+        SCF_chaxbax_latex, SCF_chaxbax_vals = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
+                                        SCF_ochax[0],SCF_obax[0],SCF_bax_min)
+        SCF_chax,SCF_bax,SCF_chch = SCF_chaxbax_vals
+        st.latex(SCF_chaxbax_latex)
+    elif 0.5 <= Ov <= 1.0:
         st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
         st.write("### $SCF_{chax}$")
         SCF_chax_latex, SCF_chax = fnc.SCF_chax_overlap(beta,twogamma,tau,Ov,theta)

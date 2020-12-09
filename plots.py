@@ -149,8 +149,9 @@ def geom_plot(h0,theta,g_prime,t0,h1,e,chord_type):
 
     #Angle between brace
     angle_arc = mpatches.Arc([0,-e],0.3,0.3,0,0,theta*180/math.pi)
-    line_1 = lines.Line2D([0,-e], [0.25,-e], linewidth=1, linestyle = "-", color="black")
-    ax.annotate(f"$\\theta = {theta*180/math.pi:.0f}$",(0.2,-e))
+    line_1 = lines.Line2D([0,0.2], [-e,-e], linewidth=1, linestyle = "-", color="black")
+    ax.add_line(line_1)
+    ax.annotate(f"$\\theta = {theta*180/math.pi:.0f}\\degree$",(0.2,-e))
     ax.add_patch(angle_arc)
 
     #Plot a filled arc to show the CHS brace cradling the cord

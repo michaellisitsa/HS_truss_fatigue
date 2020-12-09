@@ -1,9 +1,11 @@
-from math import sqrt
 from handcalcs import handcalc
 from math import sqrt, cos, sin, pi, atan, tan
 import streamlit as st
 import forallpeople as u
 u.environment('structural')
+from scipy.interpolate import interp2d
+import numpy as np
+import matplotlib.pyplot as plt
 
 @handcalc(override="long")
 def dim_params(b0,t0,b1,t1,chord_type):
@@ -120,3 +122,46 @@ def cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,sigma_chordM_op,sig
     sigma_chord = sum((sigma_chord1P, sigma_chord2P, sigma_chordM_ip, sigma_chordM_op))
     sigma_brace = sum((sigma_brace_1P,sigma_braceM_op))
     return sigma_chord, sigma_brace
+
+def SCFochax_func(beta,theta):
+    """
+    SCFochax and SCFobax are functions of both beta and theta
+    Use Scipy interp2d function to create interpolation between curves
+    Then plot the image of the graphs and the plotted value.
+    This gives user re-assurance that the value was correctly calculated.
+    """
+    beta_vals = [0.3,0.6]
+    theta_vals = [30,45,60]
+    SCF_ochax_vals = [[2.73,2.5],[3.18,2.83],[3.52,3.19]]
+    SCF_obax_vals = [[1.45,1.15],[2.03,1.7],[2.5,2.08]]
+    SCF_ochax_func = interp2d(beta_vals, theta_vals, SCF_ochax_vals, kind='linear')
+    SCF_obax_func = interp2d(beta_vals,theta_vals, SCF_obax_vals, kind='linear')
+    SCF_ochax = SCF_ochax_func(beta,theta*180/pi)
+    SCF_obax = SCF_obax_func(beta,theta*180/pi)
+
+    #Interpolate SCF_bax_min
+    SCF_bax_min = np.interp(theta*180/pi,[30,45,60],[2.64,2.30,2.12])
+
+    #Create graph to visualise answer on graph
+    fig, ax = plt.subplots(1,2)
+    SCF_ochax_img = plt.imread("data/SCFochax.png")
+    SCF_obax_img = plt.imread("data/SCFobax.png")
+    ax[0].imshow(SCF_ochax_img, extent=[0, 1, 0, 4])
+    ax[1].imshow(SCF_obax_img, extent=[0, 1, 0, 4])
+    ax[0].set_title(r"$SCF_{o,ch,ax}$")
+    ax[1].set_title(r"$SCF_{o,b,ax}$")
+    ax[0].plot(beta,SCF_ochax,'ro')
+    ax[1].plot(beta,SCF_obax,'ro')
+    ax[0].set_aspect(0.25)
+    ax[1].set_aspect(0.25)
+    return SCF_ochax, SCF_obax, SCF_bax_min, fig, ax
+
+@handcalc(override="long")
+def SCF_chaxbaxchch_chs(gamma,tau,theta,SCF_ochax,SCF_obax,SCF_bax_min):
+    """
+    Calculate SCF_chax and SCF_bax and render with handcalcs
+    """
+    SCF_chax = max(2,(gamma/12)**0.4 * (tau/0.5)**1.1 * SCF_ochax)
+    SCF_bax = max(SCF_bax_min,sqrt(gamma/12) * sqrt(tau/0.5) * SCF_obax)
+    SCF_chch = max(2,1.2*(tau/0.5)**0.3 * sin(theta)**-0.9)
+    return SCF_chax,SCF_bax,SCF_chch
