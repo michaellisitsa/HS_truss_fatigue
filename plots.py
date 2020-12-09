@@ -29,9 +29,9 @@ def dim_params_plot(b0,t0,b1,t1,chord_type,beta_min,beta_max,twogamma_min,twogam
     ax[2].plot(t0,t1,'ro',c="black")
 
     #Annotate single points for each graph with beta,gamma,tau values
-    ax[0].annotate(text=b1/b0,xy=(b0,b1),xytext=(b0-75,b1+25),fontsize=8)
-    ax[1].annotate(text=b0/t0,xy=(t0,b0),xytext=(t0-2,b0+25),fontsize=8)
-    ax[2].annotate(text=t1/t0,xy=(t0,t1),xytext=(t0-2,t1+2),fontsize=8)
+    ax[0].annotate(text=f"{b1/b0:.2f}",xy=(b0,b1),xytext=(b0-75,b1+25),fontsize=8)
+    ax[1].annotate(text=f"{b0/t0:.2f}",xy=(t0,b0),xytext=(t0-2,b0+25),fontsize=8)
+    ax[2].annotate(text=f"{t1/t0:.2f}",xy=(t0,t1),xytext=(t0-2,t1+2),fontsize=8)
 
     #Create shaded region of acceptable values
     ax[0].fill_between([0,500],[0,beta_max * 500],[0,beta_min * 500], facecolor='green', alpha=0.5)
@@ -39,9 +39,9 @@ def dim_params_plot(b0,t0,b1,t1,chord_type,beta_min,beta_max,twogamma_min,twogam
     ax[2].fill_between([0,20],[0,tau_max * 20],[0,tau_min*20], facecolor='green', alpha=0.5)
 
     #Set graph titles with allowable range
-    ax[0].set_title(r'$0.35 \leq \beta(=\frac{b_1}{b_0}) \leq 1.0$',fontsize=10)
-    ax[1].set_title(r'$10 \leq 2\gamma(=\frac{b_0}{t_0}) \leq 35$',fontsize=10)
-    ax[2].set_title(r'$0.25 \leq \tau(=\frac{t_1}{t_0}) \leq 1.0$',fontsize=10)
+    ax[0].set_title(f'${beta_min} \\leq \\beta(=b_1/b_0) \leq {beta_max}$',fontsize=10)
+    ax[1].set_title(f'${twogamma_min} \\leq 2\\gamma(=b_0/t_0) \leq {twogamma_max}$',fontsize=10)
+    ax[2].set_title(f'$0.25 \\leq \\tau(=t_1/t_0) \leq 1.0$',fontsize=10)
 
     #Label axes
     ax[0].set_xlabel('b0')
