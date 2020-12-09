@@ -130,7 +130,8 @@ def main():
         st.stop()
 
     #Plot dimension parameters
-    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max)
+    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,
+                                beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max)
     results_container.pyplot(fig)
     # dimensions checks plotted at top of document
 

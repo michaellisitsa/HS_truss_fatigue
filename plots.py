@@ -3,6 +3,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.lines as lines
 
 import forallpeople as u
 u.environment('structural')
@@ -126,14 +127,10 @@ def geom_plot(h0,theta,g_prime,t0,h1,e,chord_type):
     ax.add_patch(brace2_obj)
 
     #Plot brace centerlines
-    ax.plot([0,
-                br_bot_left_x + br_top_x + p/2],
-            [-e,
-                h0/2 + br_top_y],linestyle='dashdot',color='black')
-    ax.plot([0,
-            -br_bot_left_x - br_top_x - p/2],
-        [-e,
-            h0/2 + br_top_y],linestyle='dashdot',color='black')
+    ax.plot([0, br_bot_left_x + br_top_x + p/2],
+            [-e, h0/2 + br_top_y],linestyle='dashdot',color='black')
+    ax.plot([0, -br_bot_left_x - br_top_x - p/2],
+            [-e, h0/2 + br_top_y],linestyle='dashdot',color='black')
     
     #Plot chord
     if chord_type == "CHS:":
@@ -149,6 +146,12 @@ def geom_plot(h0,theta,g_prime,t0,h1,e,chord_type):
     ax.axhline(y=0, color='k')
     ax.axvline(x=0, color='k')
     ax.set_aspect('equal')
+
+    #Angle between brace
+    angle_arc = mpatches.Arc([0,-e],0.3,0.3,0,0,theta*180/math.pi)
+    line_1 = lines.Line2D([0,-e], [0.25,-e], linewidth=1, linestyle = "-", color="black")
+    ax.annotate(f"$\\theta = {theta*180/math.pi:.0f}$",(0.2,-e))
+    ax.add_patch(angle_arc)
 
     #Plot a filled arc to show the CHS brace cradling the cord
     if chord_type=="CHS":
