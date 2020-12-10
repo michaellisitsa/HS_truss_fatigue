@@ -109,7 +109,7 @@ def main():
         #If overlap is exceeding, end calculation
         if 0 < Ov < 0.5:
             st.error("Calculation terminated refer Results Summary for errors")
-            fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+            fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
             results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
             results_container.error("Try amending eccentricity, or truss dimensions")
             st.stop()
@@ -137,9 +137,11 @@ def main():
         twogamma_max = 35
 
     #If gap is too small, end calculation
-    if 0 <= g_prime <= 2 * tau:
+    if chord_type=="CHS":
+        pass
+    elif 0 <= g_prime <= 2 * tau:
         st.error("Calculation terminated refer Results Summary for errors")
-        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e)
+        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
         results_container.error("Gap to chord thick ratio IS NOT ACCEPTABLE $g^\prime < 2 \cdot tau$")
         results_container.error("Increase the gap between members, or overlap by at least 50%")
         st.stop()
