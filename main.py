@@ -17,7 +17,7 @@ u.environment('structural')
 import math
 
 #Main function calls made at each run of Streamlit
-def main():
+def main(ind_chord_type):
     """This function is run at each launch of streamlit"""
     #Create Title Markdown
     st.title("CIDECT-8 Fatigue - K-joint Trusses")
@@ -32,7 +32,7 @@ def main():
 
     #Create section picker in streamlit sidebar
     st.sidebar.markdown("## Hollow Section Sizes")
-    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"))
+    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=ind_chord_type)
     b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord")
     if chord_type == "CHS":
         st.sidebar.markdown("Choose Size of Brace")
@@ -265,7 +265,8 @@ def main():
         results_container.success("PASS - Stresses are within allowable limits")
     else:
         results_container.error("FAIL - Stresses exceed allowable limits")
-
+    
+    return sigma_chord.value
     
 if __name__ == '__main__':
-    main()
+    main(ind_chord_type=0)
