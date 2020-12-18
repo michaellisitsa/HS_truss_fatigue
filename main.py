@@ -32,14 +32,15 @@ def main(ind_chord_type):
 
     #Create section picker in streamlit sidebar
     st.sidebar.markdown("## Hollow Section Sizes")
+    code = st.sidebar.radio("Which code:",["AS","EN"])
     chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=ind_chord_type)
-    b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord")
+    b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord",code)
     if chord_type == "CHS":
         st.sidebar.markdown("Choose Size of Brace")
         brace_type = "CHS"
     else:
         brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
-    b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace")
+    b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace",code)
 
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')

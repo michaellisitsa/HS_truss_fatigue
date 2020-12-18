@@ -6,10 +6,13 @@ import forallpeople as u
 u.environment('structural')
 from PIL import Image
 
-def hs_lookup(hs_type,member_type):
+def hs_lookup(hs_type,member_type,code):
     shs = pd.read_csv(r"data/SHS.csv",header=0)
     rhs = pd.read_csv(r"data/RHS.csv",header=0)
-    chs = pd.read_csv(r"data/CHS.csv",header=0)
+    if code == "AS":
+        chs = pd.read_csv(r"data/CHS.csv",header=0)
+    elif code == "EN":
+        chs = pd.read_csv(r"data/CHS_en.csv",header=0)
     if hs_type == "SHS":
         options = st.sidebar.selectbox("",shs,key=member_type)
         hs_chosen = shs[shs['Dimensions'] == options]
