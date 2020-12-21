@@ -20,7 +20,7 @@ def all_options():
     pass
 
 #Main function calls made at each run of Streamlit
-def main(ind_chord_type):
+def main(ind_chord_type,srun: bool):
     """This function is run at each launch of streamlit"""
     #Create Title Markdown
     st.title("CIDECT-8 Fatigue - K-joint Trusses")
@@ -37,13 +37,15 @@ def main(ind_chord_type):
     st.sidebar.markdown("## Hollow Section Sizes")
     code = st.sidebar.radio("Which code:",["AS","EN"])
     chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=ind_chord_type)
-    b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_lookup(chord_type,"chord",code)
+    reverse_axes, hs_chosen = vld.hs_lookup(chord_type,"chord",code)
+    b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_populate(reverse_axes, hs_chosen)
     if chord_type == "CHS":
         st.sidebar.markdown("Choose Size of Brace")
         brace_type = "CHS"
     else:
         brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
-    b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_lookup(brace_type,"brace",code)
+    reverse_axes, hs_chosen = vld.hs_lookup(brace_type,"brace",code)
+    b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_populate(reverse_axes, hs_chosen)
 
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')
@@ -72,110 +74,93 @@ def main(ind_chord_type):
     SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
     SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
 
-    #Show overlap images
-    st.write('## Calculate overlap')
-    with st.beta_expander("Expand for sketch describing overlap calculations:"):
-        st.image(r"data/overlap_calculation.png",use_column_width=True)
-        st.image(r"data/gap_calculation.jpg",use_column_width=True)
-
-    #Calculate overlap and display LATEX
+    #Calculate overlap and Plot geometry and check eccentricity and angle
+    #Calculate Dimensional parameters beta, gamma, tau, and check angle, eccentricity, if gap
     overlap_latex, (Ov,theta,g_prime) = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
-    st.latex(overlap_latex)
-
-    #Plot geometry and check eccentricity and angle
-    fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
-    results_container.pyplot(fig2)
-    
-    #Calculate Dimensional parameters beta, gamma and tau
-    st.write('## Dimensional Parameters')
-    with st.beta_expander("Expand for sketch describing truss dimensions:"):
-        st.image(r"data/geometric_parameters.png",use_column_width=True)
-    dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
-    st.latex(dim_params_latex)
-    beta, twogamma, tau = dim_params
-
+    dim_params_latex, (beta, twogamma, tau) = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
     success, message, gap = fnc.check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau)
-    if success:
-        results_container.success(message)
-    else:
-        results_container.error(message)
-        st.stop()
-
-    #Set limits for beta, gamma and tau
-    tau_min = 0.25
-    tau_max = 1.0
-    if chord_type == "CHS":
-        beta_min = 0.3
-        beta_max = 0.6
-        twogamma_min = 24
-        twogamma_max = 60
-    else:
-        beta_min = 0.35
-        beta_max = 1.0
-        twogamma_min = 10
-        twogamma_max = 35
-
-    #Plot dimension parameters
-    fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,
-                                beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max)
-    results_container.pyplot(fig)
-    # dimensions checks plotted at top of document
-
-    #Check whether dimension parameters are exceeded and end script
+    tau_min,tau_max,beta_min,beta_max,twogamma_min,twogamma_max = fnc.dim_limits(chord_type)
     if (beta_min <= beta <= beta_max
         and twogamma_min <= twogamma <= twogamma_max
         and tau_min <= tau <= tau_max):
-        results_container.success("PASS - Dimensions are within allowable limits")
+        dim_success = True
     else:
-        results_container.error("FAIL - Dimensional Parameters exceeded.")
-        st.stop()    
+        dim_success = False
+    
+    #Single run outputs
+    if srun:
+        #Expander showing how calculations done
+        st.write('## Calculate overlap')
+        with st.beta_expander("Expand for sketch describing overlap calculations:"):
+            st.image(r"data/overlap_calculation.png",use_column_width=True)
+            st.image(r"data/gap_calculation.jpg",use_column_width=True)
+        #Overlap and geometry plots
+        st.latex(overlap_latex)
+        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
+        results_container.pyplot(fig2)
+        #Render equations and helper drawing
+        st.write('## Dimensional Parameters')
+        with st.beta_expander("Expand for sketch describing truss dimensions:"):
+            st.image(r"data/geometric_parameters.png",use_column_width=True)
+        st.latex(dim_params_latex)
+        #Output or stop script for angle, eccentricity, gap checks
+        if success:
+            results_container.success(message)
+        else:
+            results_container.error(message)
+            st.stop()
+        fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,
+                                    beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max)
+        results_container.pyplot(fig)
+        #Output or stop script whether dimension parameters are exceeded
+        if dim_success:
+            results_container.success("PASS - Dimensions are within allowable limits")
+        else:
+            results_container.error("FAIL - Dimensional Parameters exceeded.")
+            st.stop()    
 
-    #Calculate SCF values
-    st.markdown("""## SCF Calculations
-    The follow calculations determine the Stress Concentration Factors (SCF) for each:
-    - LC1 chord -> $SCF_{ch,ax}$
-    - LC1 brace -> $SCF_{b,ax}$
-    - LC2 chord -> $SCF_{ch,ch}$""")
+        #Calculate SCF values
+        st.markdown("""## SCF Calculations
+        The follow calculations determine the Stress Concentration Factors (SCF) for each:
+        - LC1 chord -> $SCF_{ch,ax}$
+        - LC1 brace -> $SCF_{b,ax}$
+        - LC2 chord -> $SCF_{ch,ch}$""")
 
     #Calculate stress concentration factors
     if chord_type=="CHS":
         SCF_ochax, SCF_obax, SCF_bax_min, fig4, ax4 = fnc.SCFochax_func(beta,theta)
-        st.pyplot(fig4)
         SCF_chaxbax_latex, (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
                                         SCF_ochax[0],SCF_obax[0],SCF_bax_min)
-        st.latex(SCF_chaxbax_latex)
-    elif 0.5 <= Ov <= 1.0:
-        st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
-        st.write("### $SCF_{chax}$")
-        SCF_chax_latex, SCF_chax = fnc.SCF_chax_overlap(beta,twogamma,tau,Ov,theta)
-        st.latex(SCF_chax_latex)
-        st.write("### $SCF_{bax}$")
-        SCF_bax_latex, SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
-        st.latex(SCF_bax_latex)
-        st.write("### $SCF_{chch}$")
-        SCF_chch_latex,SCF_chch = fnc.SCF_chch_overlap(beta)
-        st.latex(SCF_chch_latex)
-    elif 2 * tau <= g_prime:
-        st.header("GAP JOINT: $2 \cdot tau <= g^\prime$")
-        st.write("### $SCF_{chax}$")
+        if srun:
+            st.pyplot(fig4)
+            st.latex(SCF_chaxbax_latex)
+    elif gap:
         SCF_chax_latex, SCF_chax = fnc.SCF_chax_gap(beta,twogamma,tau,g_prime,theta)
-        st.latex(SCF_chax_latex)
-        st.write("### $SCF_{bax}$")
         SCF_bax_latex, SCF_bax = fnc.SCF_bax_gap(beta,twogamma,tau,theta)
-        st.latex(SCF_bax_latex)
-        st.write("### $SCF_{chch}$")
         SCF_chch_latex,SCF_chch = fnc.SCF_chch_gap(beta,g_prime)
-        st.latex(SCF_chch_latex)
+        if srun:
+            st.header("GAP JOINT: $2 \cdot tau <= g^\prime$")
+            st.write("### $SCF_{chax}$")
+            st.latex(SCF_chax_latex)
+            st.write("### $SCF_{bax}$")
+            st.latex(SCF_bax_latex)
+            st.write("### $SCF_{chch}$")
+            st.latex(SCF_chch_latex)
+    else:
+        SCF_chax_latex, SCF_chax = fnc.SCF_chax_overlap(beta,twogamma,tau,Ov,theta)
+        SCF_bax_latex, SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
+        SCF_chch_latex,SCF_chch = fnc.SCF_chch_overlap(beta)
+        if srun:
+            st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
+            st.write("### $SCF_{chax}$")
+            st.latex(SCF_chax_latex)
+            st.write("### $SCF_{bax}$")
+            st.latex(SCF_bax_latex)
+            st.write("### $SCF_{chch}$")
+            st.latex(SCF_chch_latex)
 
-    #Calculate Stresses:
-    st.markdown("""## Nominal Stress Ranges
 
-    Nominal stresses are obtained by getting:
-    - principal stresses 
-    - outer fiber bending stresses of each element defined in Sec 3.3.
-
-    ### Axial Stresses - Chord""")
-
+    #Calculate all stresses
     chord_ax_stresses_latex, (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses(SCF_chax,
                                                                         SCF_chch,
                                                                         P_brace * u.kN,
@@ -183,16 +168,10 @@ def main(ind_chord_type):
                                                                         theta,
                                                                         A_chord * u.m**2,
                                                                         A_brace * u.m**2)
-    st.latex(chord_ax_stresses_latex)
-
-    st.write("### Bending Moment Stresses - Chord")
     chord_BM_stresses_latex, (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses(
-            h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
-            M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
-            Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
-    st.latex(chord_BM_stresses_latex)
-
-    st.write("### Stresses - Brace")
+                                            h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
+                                            M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
+                                            Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
     brace_stresses_latex, (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses(b1 * u.m, 
                                                             SCF_bax,
                                                             P_brace * u.kN,
@@ -200,35 +179,51 @@ def main(ind_chord_type):
                                                             SCF_br_op,
                                                             M_op_brace * u.kN * u.m,
                                                             Iy_brace * 10**6 * u.m**4)
-    st.latex(brace_stresses_latex)
-
-    #Cumulative Stresses
     cum_stresses_latex, (sigma_chord, sigma_brace) = fnc.cum_stresses(sigma_chord1P,
-                    sigma_chord2P,
-                    sigma_chordM_ip,
-                    sigma_chordM_op,
-                    sigma_brace_1P,
-                    sigma_braceM_op)
-    st.markdown("### TOTAL Stresses")
-    st.latex(cum_stresses_latex)
-
-    #Stresses Bar Charts
-    fig1, ax1 = plots.bar_chart(sigma_chord1P.value*10**-6, 
-                            sigma_chord2P.value*10**-6, 
-                            sigma_chordM_ip.value*10**-6, 
-                            sigma_chordM_op.value*10**-6,
-                            sigma_brace_1P.value*10**-6, 
-                            sigma_braceM_op.value*10**-6,
-                            sigma_max)
-
-    #Results Summary in sidebar
-    results_container.pyplot(fig1)
+                                                                    sigma_chord2P,
+                                                                    sigma_chordM_ip,
+                                                                    sigma_chordM_op,
+                                                                    sigma_brace_1P,
+                                                                    sigma_braceM_op)
     if sigma_chord <= sigma_max * u.MPa and sigma_brace <= sigma_max * u.MPa:
-        results_container.success("PASS - Stresses are within allowable limits")
+        success_stress = True
     else:
-        results_container.error("FAIL - Stresses exceed allowable limits")
+        success_stress = False
+
+    if srun:
+        st.latex(chord_ax_stresses_latex)
+        #Calculate Stresses:
+        st.markdown("""## Nominal Stress Ranges
+
+        Nominal stresses are obtained by getting:
+        - principal stresses 
+        - outer fiber bending stresses of each element defined in Sec 3.3.
+
+        ### Axial Stresses - Chord""")
+        st.write("### Bending Moment Stresses - Chord")
+        st.latex(chord_BM_stresses_latex)
+        st.write("### Stresses - Brace")
+        st.latex(brace_stresses_latex)
+        st.markdown("### TOTAL Stresses")
+        st.latex(cum_stresses_latex)
+        #Stresses Bar Charts
+        fig1, ax1 = plots.bar_chart(sigma_chord1P.value*10**-6, 
+                                sigma_chord2P.value*10**-6, 
+                                sigma_chordM_ip.value*10**-6, 
+                                sigma_chordM_op.value*10**-6,
+                                sigma_brace_1P.value*10**-6, 
+                                sigma_braceM_op.value*10**-6,
+                                sigma_max)
+        results_container.pyplot(fig1)
+        #Check for stresses and output message
+        if success_stress:
+            results_container.success("PASS - Stresses are within allowable limits")
+        else:
+            results_container.error("FAIL - Stresses exceed allowable limits")
     
     return sigma_chord.value
     
 if __name__ == '__main__':
-    main(ind_chord_type=0)
+    results = st.sidebar.checkbox("Display results?",value=True)
+    st.write(main(0,results))
+    

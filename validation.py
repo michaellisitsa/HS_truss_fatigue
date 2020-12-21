@@ -6,13 +6,22 @@ import forallpeople as u
 u.environment('structural')
 from PIL import Image
 
+@st.cache
+def load_data():
+    shs_au = pd.read_csv(r"data/SHS.csv",header=0)
+    rhs_au = pd.read_csv(r"data/RHS.csv",header=0)
+    chs_au = pd.read_csv(r"data/CHS.csv",header=0)
+    chs_en = pd.read_csv(r"data/CHS_en.csv",header=0)
+    return shs_au,rhs_au,chs_au,chs_en
+
 def hs_lookup(hs_type,member_type,code):
-    shs = pd.read_csv(r"data/SHS.csv",header=0)
-    rhs = pd.read_csv(r"data/RHS.csv",header=0)
+    shs_au,rhs_au,chs_au,chs_en = load_data()
+    shs = shs_au
+    rhs = rhs_au
     if code == "AS":
-        chs = pd.read_csv(r"data/CHS.csv",header=0)
+        chs = chs_au
     elif code == "EN":
-        chs = pd.read_csv(r"data/CHS_en.csv",header=0)
+        chs = chs_en
     if hs_type == "SHS":
         options = st.sidebar.selectbox("",shs,key=member_type)
         hs_chosen = shs[shs['Dimensions'] == options]
@@ -25,6 +34,10 @@ def hs_lookup(hs_type,member_type,code):
         options = st.sidebar.selectbox("",chs,key=member_type)
         hs_chosen = chs[chs['Dimensions'] == options]
         reverse_axes = False #member is symmetrical so reverse is not needed for CHS's
+    return reverse_axes, hs_chosen
+
+@st.cache
+def hs_populate(reverse_axes: bool, hs_chosen):
     if reverse_axes:
         b = hs_chosen.iloc[0]['d'] / 1000
         h = hs_chosen.iloc[0]['b'] / 1000

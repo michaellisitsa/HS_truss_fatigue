@@ -16,6 +16,21 @@ def dim_params(b0,t0,b1,t1,chord_type):
     tau = t1 / t0 #Ratio of brace to chord thickness, where 0.25 < tau <= 1.0
     return beta, twogamma, tau
 
+def dim_limits(chord_type):
+    tau_min = 0.25
+    tau_max = 1.0
+    if chord_type == "CHS":
+        beta_min = 0.3
+        beta_max = 0.6
+        twogamma_min = 24
+        twogamma_max = 60
+    else:
+        beta_min = 0.35
+        beta_max = 1.0
+        twogamma_min = 10
+        twogamma_max = 35
+    return tau_min,tau_max,beta_min,beta_max,twogamma_min,twogamma_max
+
 @handcalc(override="long")
 def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1,t0):
     """Calculate the overlap percentage 
