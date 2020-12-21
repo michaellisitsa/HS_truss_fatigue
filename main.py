@@ -16,6 +16,9 @@ u.environment('structural')
 
 import math
 
+def all_options():
+    pass
+
 #Main function calls made at each run of Streamlit
 def main(ind_chord_type):
     """This function is run at each launch of streamlit"""
@@ -47,10 +50,10 @@ def main(ind_chord_type):
     if chord_type == "CHS":
         e = 0
     else:
-        e = st.sidebar.slider('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
-    chordspacing = st.sidebar.slider('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
-    L_chord = st.sidebar.slider('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
-    div_chord = st.sidebar.slider('Chord divisions',1,20,4,step=1,format='%i')
+        e = st.sidebar.number_input('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
+    chordspacing = st.sidebar.number_input('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
+    L_chord = st.sidebar.number_input('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
+    div_chord = st.sidebar.number_input('Chord divisions',1,20,4,step=1,format='%i')
 
     #Create Force Inputs
     st.sidebar.markdown('## Input Forces')
@@ -75,9 +78,6 @@ def main(ind_chord_type):
         st.image(r"data/overlap_calculation.png",use_column_width=True)
         st.image(r"data/gap_calculation.jpg",use_column_width=True)
 
-    #Create a container at the top of page to put results summaries into.
-    st.beta_container()
-
     #Calculate overlap and display LATEX
     overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
     Ov,theta,g_prime = overlap_outputs
@@ -86,35 +86,7 @@ def main(ind_chord_type):
     #Plot geometry and check eccentricity and angle
     fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
     results_container.pyplot(fig2)
-    if chord_type=="CHS":
-        if 30*math.pi/180 < theta < 60 * math.pi/180:
-            results_container.success("PASS - Brace angle within allowable limits")
-        else:
-            results_container.error("FAIL - Angle exceeded.")
-            st.stop()
-    else:
-        if -0.55 <= e/h0 <= 0.25:
-            if 30*math.pi/180 < theta < 60 * math.pi/180:
-                results_container.success("PASS - Brace angle and eccentricity within allowable limits")
-            else:
-                results_container.error("FAIL - Angle exceeded.")
-                st.stop()
-        else:
-            if 30*math.pi/180 < theta < 60 * math.pi/180:
-                results_container.error("FAIL - Eccentricity exceeds allowable offset from chord centroid")
-            else:
-                results_container.error("FAIL - Eccentricity and Angle exceeded.")
-                st.stop()
-            
-            st.stop()
-        #If overlap is exceeding, end calculation
-        if 0 < Ov < 0.5:
-            st.error("Calculation terminated refer Results Summary for errors")
-            fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
-            results_container.error("Overlap is NOT ACCEPTABLE (between 0% to 50%)")
-            results_container.error("Try amending eccentricity, or truss dimensions")
-            st.stop()
-
+    
     #Calculate Dimensional parameters beta, gamma and tau
     st.write('## Dimensional Parameters')
     with st.beta_expander("Expand for sketch describing truss dimensions:"):
@@ -122,6 +94,13 @@ def main(ind_chord_type):
     dim_params_latex, dim_params = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
     st.latex(dim_params_latex)
     beta, twogamma, tau = dim_params
+
+    success, message, gap = fnc.check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau)
+    if success:
+        results_container.success(message)
+    else:
+        results_container.error(message)
+        st.stop()
 
     #Set limits for beta, gamma and tau
     tau_min = 0.25
@@ -136,16 +115,6 @@ def main(ind_chord_type):
         beta_max = 1.0
         twogamma_min = 10
         twogamma_max = 35
-
-    #If gap is too small, end calculation
-    if chord_type=="CHS":
-        pass
-    elif 0 <= g_prime <= 2 * tau:
-        st.error("Calculation terminated refer Results Summary for errors")
-        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
-        results_container.error("Gap to chord thick ratio IS NOT ACCEPTABLE $g^\prime < 2 \cdot tau$")
-        results_container.error("Increase the gap between members, or overlap by at least 50%")
-        st.stop()
 
     #Plot dimension parameters
     fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,

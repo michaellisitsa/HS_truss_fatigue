@@ -31,6 +31,48 @@ def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1,t0):
     Ov = q / p #Overlap
     return Ov, theta, g_prime
 
+def check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau):
+    """
+    Checks for a suitable angle, eccentricity and gap/overlap dependent on CHS or SHS/RHS
+    
+    Returns:
+    success: bool - Whether or not all checks pass
+    message: str - Comment on each check
+    gap: bool - Whether joint is gap or not, used later for MF and for SCF formulas (SHS/RHS only)
+    """
+    if 30*pi/180 < theta < 60 * pi/180:
+        success = True
+        message = "Angle OK"
+    else:
+        success = False
+        message = "Angle NOT OK. Maintain 30 to 60deg"
+    
+    if -0.55 <= e/h0 <= 0.25:
+        message += " | Eccentricity OK"
+    else:
+        success = False
+        message += " | Eccentricity NOT OK. Maintain {0:.0f}mm<=e/h0<={1:.0f}mm".format(-h0*0.55*1000,h0*0.25*1000)
+
+    if 0 <= g_prime < 2 * tau and chord_type != "CHS":
+        gap = True
+        success = False
+        message += " | Gap NOT OK. Increase so g'>= 2 * tau"
+    elif Ov <= 0:
+        gap = True
+    elif (Ov < 0.5 or Ov > 1.0) and chord_type != "CHS":
+        gap = False
+        success = False
+        message += " | Overlap NOT OK. Change to 50% to 100%"
+    elif 0.0 < Ov <= 1.0 and chord_type != "CHS":
+        gap = False
+        message += " | Overlap OK"
+    else:
+        gap = False
+        success = False
+        message += " | Overlap NOT OK for CHS. Make gap joint"
+
+    return success, message, gap
+
 @handcalc(override="long")
 def SCF_chax_overlap(beta,twogamma,tau,Ov,theta):
     """Calculate the stress concentration 
