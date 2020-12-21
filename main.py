@@ -16,7 +16,7 @@ u.environment('structural')
 
 import math
 
-def all_options():
+def run_type(srun: bool):
     pass
 
 #Main function calls made at each run of Streamlit
@@ -28,24 +28,21 @@ def main(ind_chord_type,srun: bool):
         The CIDECT 8 design guide is adopted. It can be downloaded at: https://www.cidect.org/design-guides/")
 
     #Create Menu for various options
-    vld.input_description("Click here to add custom description, sketch or image")
-    # Out of order Results Summary
-    st.header("Results Summary")
-    results_container = st.beta_container()
+    vld.input_description("Click here to add custom description, sketch or image")    
 
     #Create section picker in streamlit sidebar
     st.sidebar.markdown("## Hollow Section Sizes")
     code = st.sidebar.radio("Which code:",["AS","EN"])
     chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=ind_chord_type)
-    reverse_axes, hs_chosen = vld.hs_lookup(chord_type,"chord",code)
-    b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_populate(reverse_axes, hs_chosen)
+    reverse_axes_chord, hs_chosen_chord = vld.hs_lookup(chord_type,"chord",code)
+    b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_populate(reverse_axes_chord, hs_chosen_chord)
     if chord_type == "CHS":
         st.sidebar.markdown("Choose Size of Brace")
         brace_type = "CHS"
     else:
         brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
-    reverse_axes, hs_chosen = vld.hs_lookup(brace_type,"brace",code)
-    b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_populate(reverse_axes, hs_chosen)
+    reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",code)
+    b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_populate(reverse_axes_brace, hs_chosen_brace)
 
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')
@@ -74,6 +71,7 @@ def main(ind_chord_type,srun: bool):
     SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
     SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
 
+
     #Calculate overlap and Plot geometry and check eccentricity and angle
     #Calculate Dimensional parameters beta, gamma, tau, and check angle, eccentricity, if gap
     overlap_latex, (Ov,theta,g_prime) = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
@@ -89,6 +87,9 @@ def main(ind_chord_type,srun: bool):
     
     #Single run outputs
     if srun:
+        #Create a container at the top of the page for plotting graphs
+        st.header("Results Summary")
+        results_container = st.beta_container()
         #Expander showing how calculations done
         st.write('## Calculate overlap')
         with st.beta_expander("Expand for sketch describing overlap calculations:"):
@@ -226,4 +227,3 @@ def main(ind_chord_type,srun: bool):
 if __name__ == '__main__':
     results = st.sidebar.checkbox("Display results?",value=True)
     st.write(main(0,results))
-    
