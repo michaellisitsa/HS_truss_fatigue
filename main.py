@@ -9,18 +9,17 @@ import plots
 #Import data and plotting
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 #Import unit aware modules
 import forallpeople as u
 u.environment('structural')
 
 import math
+import time
 
-def run_type(srun: bool):
-    pass
 
-#Main function calls made at each run of Streamlit
-def main(ind_chord_type,srun: bool):
+def inputs(srun: bool):
     """This function is run at each launch of streamlit"""
     #Create Title Markdown
     st.title("CIDECT-8 Fatigue - K-joint Trusses")
@@ -33,17 +32,33 @@ def main(ind_chord_type,srun: bool):
     #Create section picker in streamlit sidebar
     st.sidebar.markdown("## Hollow Section Sizes")
     code = st.sidebar.radio("Which code:",["AS","EN"])
-    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=ind_chord_type)
-    reverse_axes_chord, hs_chosen_chord = vld.hs_lookup(chord_type,"chord",code)
-    b0,h0,t0,A_chord,Ix_chord,Iy_chord = vld.hs_populate(reverse_axes_chord, hs_chosen_chord)
+    chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=0)
+    chord_table = vld.load_data(code,chord_type)
+    if srun:
+        reverse_axes_chord, hs_chosen_chord = vld.hs_lookup(chord_type,"chord",chord_table)
+        chord_props = vld.hs_populate(reverse_axes_chord, hs_chosen_chord,srun)
+        st.write(chord_props)
+    else:
+        reverse_axes_chord = False
+        chord_df = vld.hs_populate(reverse_axes_chord, chord_table,srun)
+        chord_props = []
+        for b,h,t,area,I_x,I_y in zip(chord_df[0],chord_df[1],chord_df[2],chord_df[3],chord_df[4],chord_df[5]):
+            chord_props.append((b,h,t,area,I_x,I_y))
     if chord_type == "CHS":
         st.sidebar.markdown("Choose Size of Brace")
         brace_type = "CHS"
     else:
         brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
-    reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",code)
-    b1,h1,t1,A_brace,Ix_brace,Iy_brace = vld.hs_populate(reverse_axes_brace, hs_chosen_brace)
-
+    brace_table = vld.load_data(code,brace_type)
+    if srun:
+        reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",brace_table)
+        brace_props = vld.hs_populate(reverse_axes_brace, hs_chosen_brace,srun)
+    else:
+        reverse_axes_brace = False
+        brace_df = vld.hs_populate(reverse_axes_brace, brace_table,srun)
+        brace_props = []
+        for b,h,t,area,I_x,I_y in zip(brace_df[0],brace_df[1],brace_df[2],brace_df[3],brace_df[4],brace_df[5]):
+            brace_props.append((b,h,t,area,I_x,I_y))
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')
     if chord_type == "CHS":
@@ -70,8 +85,19 @@ def main(ind_chord_type,srun: bool):
     st.sidebar.markdown('## SCF Manual input')
     SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
     SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
+    return (chord_type,chord_props,brace_props,
+            e,chordspacing,L_chord,div_chord,
+            P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
+            sigma_max,SCF_ch_op,SCF_br_op)
 
-
+def main(srun: bool,chord_type,chord_props,brace_props,
+                    e,chordspacing,L_chord,div_chord,
+                    P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
+                    sigma_max,SCF_ch_op,SCF_br_op):
+    start = time.time()
+    #Unpack section properties
+    b0,h0,t0,A_chord,Ix_chord,Iy_chord = chord_props
+    b1,h1,t1,A_brace,Ix_brace,Iy_brace = brace_props
     #Calculate overlap and Plot geometry and check eccentricity and angle
     #Calculate Dimensional parameters beta, gamma, tau, and check angle, eccentricity, if gap
     overlap_latex, (Ov,theta,g_prime) = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
@@ -84,7 +110,6 @@ def main(ind_chord_type,srun: bool):
         dim_success = True
     else:
         dim_success = False
-    
     #Single run outputs
     if srun:
         #Create a container at the top of the page for plotting graphs
@@ -221,9 +246,33 @@ def main(ind_chord_type,srun: bool):
             results_container.success("PASS - Stresses are within allowable limits")
         else:
             results_container.error("FAIL - Stresses exceed allowable limits")
-    
-    return sigma_chord.value
+    end = time.time()
+    st.text("Runtime = {0}".format(end - start))
+    return sigma_chord.value, sigma_brace.value
     
 if __name__ == '__main__':
-    results = st.sidebar.checkbox("Display results?",value=True)
-    st.write(main(0,results))
+    results = st.sidebar.checkbox("CHECKED: Choose Size\n UNCHECKED: All Sizes (experimental)",value=True)
+    if results:
+        (chord_type,chord_props,brace_props,
+            e,chordspacing,L_chord,div_chord,
+            P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
+            sigma_max,SCF_ch_op,SCF_br_op) = inputs(results)
+        st.write(main(results,chord_type,chord_props,brace_props,
+                        e,chordspacing,L_chord,div_chord,
+                        P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
+                        sigma_max,SCF_ch_op,SCF_br_op))
+    else:
+        (chord_type,chord_props,brace_props,
+            e,chordspacing,L_chord,div_chord,
+            P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
+            sigma_max,SCF_ch_op,SCF_br_op) = inputs(results)
+
+        for ch, br in zip(chord_props,brace_props):
+            sigma_chord, sigma_brace = main(results,chord_type,ch,br,
+                        e,chordspacing,L_chord,div_chord,
+                        P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
+                        sigma_max,SCF_ch_op,SCF_br_op)
+            st.text(f"Chord: {ch[0]*1000,ch[1]*1000,ch[2]*1000}\n"
+                    f"Brace: {br[0]*1000,br[1]*1000,br[2]*1000}\n"
+                    f"sigma_chord = {sigma_chord/1e6:.2f}MPa\n"
+                    f"sigma_brace = {sigma_brace/1e6:.2f}MPa")

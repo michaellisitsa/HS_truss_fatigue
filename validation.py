@@ -7,56 +7,49 @@ u.environment('structural')
 from PIL import Image
 
 @st.cache
-def load_data():
-    shs_au = pd.read_csv(r"data/SHS.csv",header=0)
-    rhs_au = pd.read_csv(r"data/RHS.csv",header=0)
-    chs_au = pd.read_csv(r"data/CHS.csv",header=0)
-    chs_en = pd.read_csv(r"data/CHS_en.csv",header=0)
-    return shs_au,rhs_au,chs_au,chs_en
-
-def hs_lookup(hs_type,member_type,code):
-    shs_au,rhs_au,chs_au,chs_en = load_data()
-    shs = shs_au
-    rhs = rhs_au
+def load_data(code,chord_type):
     if code == "AS":
-        chs = chs_au
+        if chord_type=="SHS":   return pd.read_csv(r"data/SHS.csv",header=0)
+        elif chord_type=="RHS": return pd.read_csv(r"data/RHS.csv",header=0)
+        elif chord_type=="CHS": return pd.read_csv(r"data/CHS.csv",header=0)
     elif code == "EN":
-        chs = chs_en
-    if hs_type == "SHS":
-        options = st.sidebar.selectbox("",shs,key=member_type)
-        hs_chosen = shs[shs['Dimensions'] == options]
-        reverse_axes = False #member is symmetrical so reverse is not needed for SHS's
-    elif hs_type == "RHS":
+        if chord_type=="SHS":   return pd.read_csv(r"data/SHS.csv",header=0)
+        elif chord_type=="RHS": return pd.read_csv(r"data/RHS.csv",header=0)
+        elif chord_type=="CHS": return pd.read_csv(r"data/CHS_en.csv",header=0)
+
+def hs_lookup(hs_type,member_type,chord_table):
+    """Select a section size"""
+    options = st.sidebar.selectbox("",chord_table,key=member_type)
+    hs_chosen = chord_table[chord_table['Dimensions'] == options]
+    reverse_axes = False #member is symmetrical so reverse is not needed for SHS's
+    if hs_type == "RHS":
         reverse_axes = st.sidebar.checkbox("Rotate 90 degrees W > H",key=member_type)
-        options = st.sidebar.selectbox("",rhs,key=member_type)
-        hs_chosen = rhs[rhs['Dimensions'] == options]
-    elif hs_type == "CHS":
-        options = st.sidebar.selectbox("",chs,key=member_type)
-        hs_chosen = chs[chs['Dimensions'] == options]
-        reverse_axes = False #member is symmetrical so reverse is not needed for CHS's
     return reverse_axes, hs_chosen
 
 @st.cache
-def hs_populate(reverse_axes: bool, hs_chosen):
+def hs_populate(reverse_axes: bool, hs_chosen,srun):
     if reverse_axes:
-        b = hs_chosen.iloc[0]['d'] / 1000
-        h = hs_chosen.iloc[0]['b'] / 1000
-        I_x =  hs_chosen.iloc[0]['Iy'] / 1000**4
-        I_y =  hs_chosen.iloc[0]['Ix'] / 1000**4
+        b = hs_chosen['d'] / 1000
+        h = hs_chosen['b'] / 1000
+        I_x =  hs_chosen['Iy'] / 1000**4
+        I_y =  hs_chosen['Ix'] / 1000**4
     else:
         try:
-            b = hs_chosen.iloc[0]['b'] / 1000
+            b = hs_chosen['b'] / 1000
         except:
-            b = hs_chosen.iloc[0]['d'] / 1000
-        h = hs_chosen.iloc[0]['d'] / 1000
-        I_x =  hs_chosen.iloc[0]['Ix'] / 1000**4
+            b = hs_chosen['d'] / 1000
+        h = hs_chosen['d'] / 1000
+        I_x =  hs_chosen['Ix'] / 1000**4
         try:
-            I_y =  hs_chosen.iloc[0]['Iy'] / 1000**4
+            I_y =  hs_chosen['Iy'] / 1000**4
         except:
             I_y = I_x #In RHS.csv I_y column does not exist, so needs to use I_x for SHS's
-    t = hs_chosen.iloc[0]['t'] / 1000
-    area = hs_chosen.iloc[0]['Area'] / 1000**2
-    return b,h,t,area,I_x,I_y
+    t = hs_chosen['t'] / 1000
+    area = hs_chosen['Area'] / 1000**2
+    if srun:
+        return b[0],h[0],t[0],area[0],I_x[0],I_y[0]
+    else:
+        return b,h,t,area,I_x,I_y
 
 def input_description(label):
     """Create Menu for user input includes
