@@ -79,8 +79,7 @@ def main(ind_chord_type):
         st.image(r"data/gap_calculation.jpg",use_column_width=True)
 
     #Calculate overlap and display LATEX
-    overlap_latex, overlap_outputs = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
-    Ov,theta,g_prime = overlap_outputs
+    overlap_latex, (Ov,theta,g_prime) = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
     st.latex(overlap_latex)
 
     #Plot geometry and check eccentricity and angle
@@ -138,15 +137,12 @@ def main(ind_chord_type):
     - LC1 brace -> $SCF_{b,ax}$
     - LC2 chord -> $SCF_{ch,ch}$""")
 
-    
-
     #Calculate stress concentration factors
     if chord_type=="CHS":
         SCF_ochax, SCF_obax, SCF_bax_min, fig4, ax4 = fnc.SCFochax_func(beta,theta)
         st.pyplot(fig4)
-        SCF_chaxbax_latex, SCF_chaxbax_vals = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
+        SCF_chaxbax_latex, (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
                                         SCF_ochax[0],SCF_obax[0],SCF_bax_min)
-        SCF_chax,SCF_bax,SCF_chch = SCF_chaxbax_vals
         st.latex(SCF_chaxbax_latex)
     elif 0.5 <= Ov <= 1.0:
         st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
@@ -180,7 +176,7 @@ def main(ind_chord_type):
 
     ### Axial Stresses - Chord""")
 
-    chord_ax_stresses_latex, chord_ax_stresses = fnc.chord_ax_stresses(SCF_chax,
+    chord_ax_stresses_latex, (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses(SCF_chax,
                                                                         SCF_chch,
                                                                         P_brace * u.kN,
                                                                         P_chord * u.kN,
@@ -188,18 +184,16 @@ def main(ind_chord_type):
                                                                         A_chord * u.m**2,
                                                                         A_brace * u.m**2)
     st.latex(chord_ax_stresses_latex)
-    sigma_chord1P, sigma_chord2P = chord_ax_stresses
 
     st.write("### Bending Moment Stresses - Chord")
-    chord_BM_stresses_latex, chord_BM_stresses = fnc.chord_BM_stresses(
+    chord_BM_stresses_latex, (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses(
             h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
             M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
             Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
     st.latex(chord_BM_stresses_latex)
-    sigma_chordM_ip, sigma_chordM_op = chord_BM_stresses
 
     st.write("### Stresses - Brace")
-    brace_stresses_latex, brace_stresses = fnc.brace_stresses(b1 * u.m, 
+    brace_stresses_latex, (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses(b1 * u.m, 
                                                             SCF_bax,
                                                             P_brace * u.kN,
                                                             A_brace * u.m**2,
@@ -207,16 +201,14 @@ def main(ind_chord_type):
                                                             M_op_brace * u.kN * u.m,
                                                             Iy_brace * 10**6 * u.m**4)
     st.latex(brace_stresses_latex)
-    sigma_brace_1P, sigma_braceM_op = brace_stresses
 
     #Cumulative Stresses
-    cum_stresses_latex, cum_stresses = fnc.cum_stresses(sigma_chord1P,
+    cum_stresses_latex, (sigma_chord, sigma_brace) = fnc.cum_stresses(sigma_chord1P,
                     sigma_chord2P,
                     sigma_chordM_ip,
                     sigma_chordM_op,
                     sigma_brace_1P,
                     sigma_braceM_op)
-    sigma_chord, sigma_brace = cum_stresses
     st.markdown("### TOTAL Stresses")
     st.latex(cum_stresses_latex)
 

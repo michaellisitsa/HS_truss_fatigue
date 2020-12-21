@@ -40,6 +40,8 @@ def check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau):
     message: str - Comment on each check
     gap: bool - Whether joint is gap or not, used later for MF and for SCF formulas (SHS/RHS only)
     """
+
+    #Check for acceptable angles
     if 30*pi/180 < theta < 60 * pi/180:
         success = True
         message = "Angle OK"
@@ -47,12 +49,14 @@ def check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau):
         success = False
         message = "Angle NOT OK. Maintain 30 to 60deg"
     
+    #Check of acceptable eccentricity
     if -0.55 <= e/h0 <= 0.25:
         message += " | Eccentricity OK"
     else:
         success = False
         message += " | Eccentricity NOT OK. Maintain {0:.0f}mm<=e/h0<={1:.0f}mm".format(-h0*0.55*1000,h0*0.25*1000)
 
+    #Check for acceptable overlap/gap for RHS, and for no overlap for CHS
     if 0 <= g_prime < 2 * tau and chord_type != "CHS":
         gap = True
         success = False
