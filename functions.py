@@ -7,8 +7,8 @@ from scipy.interpolate import interp2d
 import numpy as np
 import matplotlib.pyplot as plt
 
+hc = st.checkbox("Enable Handcalcs", value=True)
 
-@handcalc(override="long")
 def dim_params(b0,t0,b1,t1,chord_type):
     """Calculate the dimensional variables beta, 
     2*gamma and tau"""
@@ -16,6 +16,8 @@ def dim_params(b0,t0,b1,t1,chord_type):
     twogamma = b0 / t0 #Ratio of chord width to 2*thickness, where 10 <= 2*gamma <= 35
     tau = t1 / t0 #Ratio of brace to chord thickness, where 0.25 < tau <= 1.0
     return beta, twogamma, tau
+
+dim_params_hc = handcalc(override="long")(dim_params)
 
 def dim_limits(chord_type):
     tau_min = 0.25
@@ -32,7 +34,7 @@ def dim_limits(chord_type):
         twogamma_max = 35
     return tau_min,tau_max,beta_min,beta_max,twogamma_min,twogamma_max
 
-@handcalc(override="long")
+
 def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1,t0):
     """Calculate the overlap percentage 
     'Ov' to be used in the calculation"""
@@ -46,6 +48,8 @@ def overlap(L_chord,chordspacing,div_chord,eccentricity,h0,h1,t0):
     g_prime = -1 * q/t0 #Ratio of gap to chord thickness
     Ov = q / p #Overlap
     return Ov, theta, g_prime
+
+overlap_hc = handcalc(override="long")(overlap)
 
 def check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau):
     """
@@ -93,7 +97,7 @@ def check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau):
 
     return success, message, gap
 
-@handcalc(override="long")
+
 def SCF_chax_overlap(beta,twogamma,tau,Ov,theta):
     """Calculate the stress concentration 
     factor for balanced condition (1) axial stresses in the chord
@@ -103,7 +107,9 @@ def SCF_chax_overlap(beta,twogamma,tau,Ov,theta):
     SCF_chax = max(pt1 * pt2,2.0) #Balanced Loading condition Chord Forces
     return SCF_chax
 
-@handcalc(override="long")
+SCF_chax_overlap_hc = handcalc(override="long")(SCF_chax_overlap)
+
+
 def SCF_chax_gap(beta,twogamma,tau,g_prime,theta):
     """Calculate the stress concentration 
     factor for balanced condition (1) axial stresses in the chord
@@ -112,8 +118,8 @@ def SCF_chax_gap(beta,twogamma,tau,g_prime,theta):
     pt2 =  twogamma**1.72 * tau**0.78 * g_prime**0.2 * sin(theta)**2.09
     SCF_chax = max(pt1 * pt2,2.0) #Balanced Loading condition Chord Forces
     return SCF_chax
+SCF_chax_gap_hc = handcalc(override="long")(SCF_chax_gap)
 
-@handcalc(override="long")
 def SCF_bax_overlap(beta,twogamma,tau,Ov,theta):
     """Calculate the stress concentration 
     factor for balanced condition (1) axial stresses in the brace
@@ -122,8 +128,8 @@ def SCF_bax_overlap(beta,twogamma,tau,Ov,theta):
     pt2 = twogamma**0.55 * tau**(-0.3) * Ov**(-2.57 + 1.62 * beta**2) * sin(theta)**0.31
     SCF_bax = max(pt1 * pt2,2.0) #Balanced Loading condition Brace Forces
     return SCF_bax
+SCF_bax_overlap_hc = handcalc(override="long")(SCF_bax_overlap)
 
-@handcalc(override="long")
 def SCF_bax_gap(beta,twogamma,tau,theta):
     """Calculate the stress concentration 
     factor for balanced condition (1) axial stresses in the brace
@@ -132,32 +138,33 @@ def SCF_bax_gap(beta,twogamma,tau,theta):
     pt2 = twogamma**1.36 * tau**(-0.66) * sin(theta)**1.29
     SCF_bax = max(pt1 * pt2,2.0) #Balanced Loading condition Brace Forces
     return SCF_bax
+SCF_bax_gap_hc = handcalc(override="long")(SCF_bax_gap)
 
-@handcalc(override="long")
+
 def SCF_chch_overlap(beta):
     """Calculate the stress concentration 
     factor for unbalanced condition (2) stresses in the chord
     overlap joint"""
     SCF_chch = max(1.2 + 1.46 * beta - 0.028 * beta**2,2.0) #Unbalanced loading condition Chord Forces
     return SCF_chch
+SCF_chch_overlap_hc = handcalc(override="long")(SCF_chch_overlap)
 
-@handcalc(override="long")
 def SCF_chch_gap(beta,g_prime):
     """Calculate the stress concentration 
     factor for unbalanced condition (2) stresses in the chord
     gap joint"""
     SCF_chch = max((2.45 + 1.23 * beta) * g_prime**-0.27,2.0) #Unbalanced loading condition Chord Forces
     return SCF_chch
+SCF_chch_gap_hc = handcalc(override="long")(SCF_chch_gap)
 
-@handcalc(override="long")
 def chord_ax_stresses(SCF_chax,SCF_chch,P_brace,P_chord,theta,A_chord,A_brace):
     """Calculate the axial stresses in the 
     chords for both balanced (1) and unbalanced (2) load conditions"""
     sigma_chord1P = SCF_chax * P_brace / A_brace
     sigma_chord2P = SCF_chch * (P_chord - P_brace * cos(theta))/ A_chord
     return sigma_chord1P, sigma_chord2P
+chord_ax_stresses_hc = handcalc(override="long")(chord_ax_stresses)
 
-@handcalc(override="long")
 def chord_BM_stresses(h0,b0,b1,SCF_chch,SCF_ch_op,M_ip_chord,M_op_chord,Ix_chord,Iy_chord):
     """Calculate the distance to fibre of chord where the extreme fibers of the brace,
     and calculate associated stresses due to bending moment in the chords for the unbalanced (2) load condition"""
@@ -166,8 +173,8 @@ def chord_BM_stresses(h0,b0,b1,SCF_chch,SCF_ch_op,M_ip_chord,M_op_chord,Ix_chord
     sigma_chordM_ip = SCF_chch * (M_ip_chord * y_ip_chord) / Ix_chord
     sigma_chordM_op = SCF_ch_op * (M_op_chord * y_op_chord) / Iy_chord
     return sigma_chordM_ip, sigma_chordM_op
+chord_BM_stresses_hc = handcalc(override="long")(chord_BM_stresses)
 
-@handcalc(override="long")
 def brace_stresses(b1, SCF_bax,P_brace,A_brace,SCF_br_op,M_op_brace,Iy_brace):
     """Calculate the distance to the extreme fiber of the brace,
     and calculated associated stresses due to bending moment in the brace for the unbalanced condition
@@ -176,14 +183,15 @@ def brace_stresses(b1, SCF_bax,P_brace,A_brace,SCF_br_op,M_op_brace,Iy_brace):
     z_op_brace = b1 / 2
     sigma_braceM_op = SCF_br_op * M_op_brace * z_op_brace / Iy_brace
     return sigma_brace_1P, sigma_braceM_op
+brace_stresses_hc = handcalc(override="long")(brace_stresses)
 
-@handcalc(override="long")
 def cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,sigma_chordM_op,sigma_brace_1P,sigma_braceM_op):
     """Sum stresses from each load condition 
     and out of plane bending stress components"""
     sigma_chord = sum((sigma_chord1P, sigma_chord2P, sigma_chordM_ip, sigma_chordM_op))
     sigma_brace = sum((sigma_brace_1P,sigma_braceM_op))
     return sigma_chord, sigma_brace
+cum_stresses_hc = handcalc(override="long")(cum_stresses)
 
 def SCFochax_func(beta,theta):
     """
@@ -218,7 +226,7 @@ def SCFochax_func(beta,theta):
     ax[1].set_aspect(0.25)
     return SCF_ochax, SCF_obax, SCF_bax_min, fig, ax
 
-@handcalc(override="long")
+
 def SCF_chaxbaxchch_chs(gamma,tau,theta,SCF_ochax,SCF_obax,SCF_bax_min):
     """
     Calculate SCF_chax and SCF_bax and render with handcalcs
@@ -227,3 +235,4 @@ def SCF_chaxbaxchch_chs(gamma,tau,theta,SCF_ochax,SCF_obax,SCF_bax_min):
     SCF_bax = max(SCF_bax_min,sqrt(gamma/12) * sqrt(tau/0.5) * SCF_obax)
     SCF_chch = max(2,1.2*(tau/0.5)**0.3 * sin(theta)**-0.9)
     return SCF_chax,SCF_bax,SCF_chch
+SCF_chaxbaxchch_chs_hc = handcalc(override="long")(SCF_chaxbaxchch_chs)
