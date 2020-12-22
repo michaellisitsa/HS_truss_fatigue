@@ -7,8 +7,6 @@ from scipy.interpolate import interp2d
 import numpy as np
 import matplotlib.pyplot as plt
 
-hc = st.checkbox("Enable Handcalcs", value=True)
-
 def dim_params(b0,t0,b1,t1,chord_type):
     """Calculate the dimensional variables beta, 
     2*gamma and tau"""

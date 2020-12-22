@@ -94,16 +94,15 @@ def main(srun: bool,chord_type,chord_props,brace_props,
                     e,chordspacing,L_chord,div_chord,
                     P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
                     sigma_max,SCF_ch_op,SCF_br_op):
-    start = time.time()
     #Unpack section properties
     b0,h0,t0,A_chord,Ix_chord,Iy_chord = chord_props
     b1,h1,t1,A_brace,Ix_brace,Iy_brace = brace_props
     #Calculate overlap and Plot geometry and check eccentricity and angle
     #Calculate Dimensional parameters beta, gamma, tau, and check angle, eccentricity, if gap
     if srun: overlap_latex, (Ov,theta,g_prime) = fnc.overlap_hc(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
-    else:                   (Ov,theta,g_prime) = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
+    else:                      (Ov,theta,g_prime) = fnc.overlap(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
     if srun: dim_params_latex, (beta, twogamma, tau) = fnc.dim_params_hc(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
-    else:                      (beta, twogamma, tau) = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
+    else:                         (beta, twogamma, tau) = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
     success, message, gap = fnc.check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau)
     tau_min,tau_max,beta_min,beta_max,twogamma_min,twogamma_max = fnc.dim_limits(chord_type)
     if (beta_min <= beta <= beta_max
@@ -159,14 +158,14 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         SCF_ochax, SCF_obax, SCF_bax_min, fig4, ax4 = fnc.SCFochax_func(beta,theta)
         if srun: SCF_chaxbax_latex, (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs_ch(twogamma/2,tau,theta,
                                         SCF_ochax[0],SCF_obax[0],SCF_bax_min)
-        else:                       (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
+        else:                          (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
                                         SCF_ochax[0],SCF_obax[0],SCF_bax_min)
         if srun:
             st.pyplot(fig4)
             st.latex(SCF_chaxbax_latex)
     elif gap:
         if srun: SCF_chax_latex, SCF_chax = fnc.SCF_chax_gap_hc(beta,twogamma,tau,g_prime,theta)
-        else:                    SCF_chax = fnc.SCF_chax_gap(beta,twogamma,tau,g_prime,theta)
+        else:                       SCF_chax = fnc.SCF_chax_gap(beta,twogamma,tau,g_prime,theta)
         if srun: SCF_bax_latex, SCF_bax = fnc.SCF_bax_gap_hc(beta,twogamma,tau,theta)
         else:                   SCF_bax = fnc.SCF_bax_gap(beta,twogamma,tau,theta)
         if srun: SCF_chch_latex, SCF_chch = fnc.SCF_chch_gap_ch(beta,g_prime)
@@ -183,10 +182,11 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         if srun: SCF_chax_latex, SCF_chax = fnc.SCF_chax_overlap_hc(beta,twogamma,tau,Ov,theta)
         else:                    SCF_chax = fnc.SCF_chax_overlap(beta,twogamma,tau,Ov,theta)
         if srun: SCF_bax_latex, SCF_bax = fnc.SCF_bax_overlap_hc(beta,twogamma,tau,Ov,theta)
-        else:                   SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
-        SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
-        SCF_chch = fnc.SCF_chch_overlap(beta)
-        SCF_chch = fnc.SCF_chch_overlap(beta)
+        else:                      SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
+        if srun: SCF_bax_latex, SCF_bax = fnc.SCF_bax_overlap_hc(beta,twogamma,tau,Ov,theta)
+        else:                      SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
+        if srun: SCF_chch_latex, SCF_chch = fnc.SCF_chch_overlap_hc(beta)
+        else:                       SCF_chch = fnc.SCF_chch_overlap(beta)
         if srun:
             st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
             st.write("### $SCF_{chax}$")
@@ -198,30 +198,26 @@ def main(srun: bool,chord_type,chord_props,brace_props,
 
 
     #Calculate all stresses
-    (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses(SCF_chax,
-                                                                        SCF_chch,
-                                                                        P_brace * u.kN,
-                                                                        P_chord * u.kN,
-                                                                        theta,
-                                                                        A_chord * u.m**2,
-                                                                        A_brace * u.m**2)
-    (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses(
-                                            h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
+    if srun: chord_ax_stresses_latex, (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses_hc(SCF_chax, SCF_chch,P_brace * u.kN,P_chord * u.kN,
+                                                            theta, A_chord * u.m**2, A_brace * u.m**2)          
+    else:       (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses(SCF_chax, SCF_chch,P_brace * u.kN,P_chord * u.kN,
+                                                            theta, A_chord * u.m**2, A_brace * u.m**2)  
+    if srun:    chord_BM_stresses_latex, (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses_hc(h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
                                             M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
                                             Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
-    (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses(b1 * u.m, 
-                                                            SCF_bax,
-                                                            P_brace * u.kN,
-                                                            A_brace * u.m**2,
-                                                            SCF_br_op,
-                                                            M_op_brace * u.kN * u.m,
-                                                            Iy_brace * 10**6 * u.m**4)
-    (sigma_chord, sigma_brace) = fnc.cum_stresses(sigma_chord1P,
-                                                                    sigma_chord2P,
-                                                                    sigma_chordM_ip,
-                                                                    sigma_chordM_op,
-                                                                    sigma_brace_1P,
-                                                                    sigma_braceM_op)
+    else:                                 (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses(h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
+                                            M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
+                                            Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
+    if srun: brace_stresses_latex, (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses_hc(b1 * u.m, SCF_bax,
+                                                            P_brace * u.kN,A_brace * u.m**2,SCF_br_op,
+                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4)
+    else:                           (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses(b1 * u.m, SCF_bax,
+                                                            P_brace * u.kN,A_brace * u.m**2,SCF_br_op,
+                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4)
+    if srun: cum_stresses_latex, (sigma_chord, sigma_brace) = fnc.cum_stresses_hc(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,
+                                                                    sigma_chordM_op,sigma_brace_1P,sigma_braceM_op)
+    else:                     (sigma_chord, sigma_brace) = fnc.cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,
+                                                                    sigma_chordM_op,sigma_brace_1P,sigma_braceM_op)
     if sigma_chord <= sigma_max * u.MPa and sigma_brace <= sigma_max * u.MPa:
         success_stress = True
     else:
@@ -257,11 +253,10 @@ def main(srun: bool,chord_type,chord_props,brace_props,
             results_container.success("PASS - Stresses are within allowable limits")
         else:
             results_container.error("FAIL - Stresses exceed allowable limits")
-    end = time.time()
-    st.text("Runtime = {0}".format(end - start))
     return sigma_chord.value, sigma_brace.value
     
 if __name__ == '__main__':
+    #st.bokeh_chart(inter)
     results = st.sidebar.checkbox("CHECKED: Choose Size\n UNCHECKED: All Sizes (experimental)",value=False)
     if results:
         (chord_type,chord_props,brace_props,
@@ -277,13 +272,18 @@ if __name__ == '__main__':
             e,chordspacing,L_chord,div_chord,
             P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
             sigma_max,SCF_ch_op,SCF_br_op) = inputs(results)
-
+        lin_sigma_chord = []
+        lin_sigma_brace = []
         for ch, br in zip(chord_props,brace_props):
             sigma_chord, sigma_brace = main(results,chord_type,ch,br,
                         e,chordspacing,L_chord,div_chord,
                         P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
                         sigma_max,SCF_ch_op,SCF_br_op)
-            st.text(f"Chord: {ch[0]*1000,ch[1]*1000,ch[2]*1000}\n"
-                    f"Brace: {br[0]*1000,br[1]*1000,br[2]*1000}\n"
-                    f"sigma_chord = {sigma_chord/1e6:.2f}MPa\n"
-                    f"sigma_brace = {sigma_brace/1e6:.2f}MPa")
+            #st.text(f"Chord: {ch[0]*1000,ch[1]*1000,ch[2]*1000}\n"
+            #        f"Brace: {br[0]*1000,br[1]*1000,br[2]*1000}\n"
+            #        f"sigma_chord = {sigma_chord/1e6:.2f}MPa\n"
+            #        f"sigma_brace = {sigma_brace/1e6:.2f}MPa")
+            lin_sigma_chord.append(sigma_chord/1e6)
+            lin_sigma_brace.append(sigma_brace/1e6)
+        plots.bokeh_interactive(lin_sigma_chord, lin_sigma_brace,sigma_max,chord_props,brace_props)
+

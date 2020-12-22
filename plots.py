@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as lines
 
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, CustomJS
+
+# import function
+from streamlit_bokeh_events import streamlit_bokeh_events
+
 import forallpeople as u
 u.environment('structural')
 import math
@@ -183,3 +189,54 @@ def geom_plot(h0,theta,g_prime,t0,h1,e,chord_type):
         pass
     return fig,ax
     
+    import streamlit as st
+
+
+def bokeh_interactive(sigma_chord,sigma_brace,sigma_max,chord_props,brace_props):
+    # create plot
+    p = figure(tools="lasso_select,reset",
+                x_range=(0, sigma_max*3), 
+                y_range=(0, sigma_max*3))
+    cds = ColumnDataSource(
+        data={
+            "x": sigma_chord,
+            "y": sigma_brace,
+        }
+    )
+    p.circle("x", "y", source=cds)
+
+    # define events
+    cds.selected.js_on_change(
+        "indices",
+        CustomJS(
+            args=dict(source=cds),
+            code="""
+            document.dispatchEvent(
+                new CustomEvent("TestSelectEvent", {detail: {indices: cb_obj.indices}})
+            )
+            """
+        )
+    )
+
+    # result will be a dict of {event_name: event.detail}
+    # events by default is "", in case of more than one events pass it as a comma separated values
+    # event1,event2 
+    # debounce is in ms
+    # refresh_on_update should be set to False only if we dont want to update datasource at runtime
+    # override_height overrides the viewport height
+    result = streamlit_bokeh_events(
+            bokeh_plot=p,
+            events="TestSelectEvent",
+            key="foo",
+            refresh_on_update=False,
+            override_height=600,
+            debounce_time=500)
+    # some event was thrown
+    if result is not None:
+        # TestSelectEvent was thrown
+        if "TestSelectEvent" in result:
+            st.subheader("Selected Points' Pandas Stat summary")
+            indices = result["TestSelectEvent"].get("indices", [])
+            st.table([chord_props[i] for i in indices])
+    st.write(result)
+    #return(result)
