@@ -188,15 +188,29 @@ def geom_plot(h0,theta,g_prime,t0,h1,e,chord_type):
     else:
         pass
     return fig,ax
-    
-    import streamlit as st
 
+def SCF_ochax_plot(beta,SCF_ochax,SCF_obax):
+    #Create graph to visualise answer on graph
+    fig, ax = plt.subplots(1,2)
+    SCF_ochax_img = plt.imread("data/SCFochax.png")
+    SCF_obax_img = plt.imread("data/SCFobax.png")
+    ax[0].imshow(SCF_ochax_img, extent=[0, 1, 0, 4])
+    ax[1].imshow(SCF_obax_img, extent=[0, 1, 0, 4])
+    ax[0].set_title(r"$SCF_{o,ch,ax}$")
+    ax[1].set_title(r"$SCF_{o,b,ax}$")
+    ax[0].plot(beta,SCF_ochax,'ro')
+    ax[1].plot(beta,SCF_obax,'ro')
+    ax[0].set_aspect(0.25)
+    ax[1].set_aspect(0.25)
+    return fig, ax
 
-def bokeh_interactive(sigma_chord,sigma_brace,sigma_max,chord_props,brace_props):
+def bokeh_interactive(sigma_chord,sigma_brace,sigma_max,chord_ind,brace_ind):
     # create plot
     p = figure(tools="lasso_select,reset",
                 x_range=(0, sigma_max*3), 
-                y_range=(0, sigma_max*3))
+                y_range=(0, sigma_max*3),
+                x_axis_label='Chord Stress (MPa)',
+                y_axis_label='Brace Stress (MPa)')
     cds = ColumnDataSource(
         data={
             "x": sigma_chord,
@@ -228,15 +242,19 @@ def bokeh_interactive(sigma_chord,sigma_brace,sigma_max,chord_props,brace_props)
             bokeh_plot=p,
             events="TestSelectEvent",
             key="foo",
-            refresh_on_update=False,
+            refresh_on_update=True,
             override_height=600,
             debounce_time=500)
     # some event was thrown
     if result is not None:
         # TestSelectEvent was thrown
         if "TestSelectEvent" in result:
-            st.subheader("Selected Points' Pandas Stat summary")
+            st.subheader("Selected Points")
             indices = result["TestSelectEvent"].get("indices", [])
-            st.table([chord_props[i] for i in indices])
-    st.write(result)
+            col1, col2 = st.beta_columns(2)
+            col1.subheader("Chords")
+            col1.table([chord_ind[i] for i in indices])
+            col2.subheader("Brace")
+            col2.table([brace_ind[i] for i in indices])
+    #st.write(result)
     #return(result)

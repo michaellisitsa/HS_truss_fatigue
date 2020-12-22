@@ -26,7 +26,7 @@ def hs_lookup(hs_type,member_type,chord_table):
         reverse_axes = st.sidebar.checkbox("Rotate 90 degrees W > H",key=member_type)
     return reverse_axes, hs_chosen
 
-@st.cache
+#@st.cache
 def hs_populate(reverse_axes: bool, hs_chosen,srun):
     if reverse_axes:
         b = hs_chosen['d'] / 1000
@@ -47,7 +47,7 @@ def hs_populate(reverse_axes: bool, hs_chosen,srun):
     t = hs_chosen['t'] / 1000
     area = hs_chosen['Area'] / 1000**2
     if srun:
-        return b[0],h[0],t[0],area[0],I_x[0],I_y[0]
+        return b.iloc[0],h.iloc[0],t.iloc[0],area.iloc[0],I_x.iloc[0],I_y.iloc[0]
     else:
         return b,h,t,area,I_x,I_y
 

@@ -210,19 +210,7 @@ def SCFochax_func(beta,theta):
     #Interpolate SCF_bax_min
     SCF_bax_min = np.interp(theta*180/pi,[30,45,60],[2.64,2.30,2.12])
 
-    #Create graph to visualise answer on graph
-    fig, ax = plt.subplots(1,2)
-    SCF_ochax_img = plt.imread("data/SCFochax.png")
-    SCF_obax_img = plt.imread("data/SCFobax.png")
-    ax[0].imshow(SCF_ochax_img, extent=[0, 1, 0, 4])
-    ax[1].imshow(SCF_obax_img, extent=[0, 1, 0, 4])
-    ax[0].set_title(r"$SCF_{o,ch,ax}$")
-    ax[1].set_title(r"$SCF_{o,b,ax}$")
-    ax[0].plot(beta,SCF_ochax,'ro')
-    ax[1].plot(beta,SCF_obax,'ro')
-    ax[0].set_aspect(0.25)
-    ax[1].set_aspect(0.25)
-    return SCF_ochax, SCF_obax, SCF_bax_min, fig, ax
+    return SCF_ochax, SCF_obax, SCF_bax_min
 
 
 def SCF_chaxbaxchch_chs(gamma,tau,theta,SCF_ochax,SCF_obax,SCF_bax_min):

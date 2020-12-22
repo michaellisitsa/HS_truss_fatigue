@@ -37,7 +37,6 @@ def inputs(srun: bool):
     if srun:
         reverse_axes_chord, hs_chosen_chord = vld.hs_lookup(chord_type,"chord",chord_table)
         chord_props = vld.hs_populate(reverse_axes_chord, hs_chosen_chord,srun)
-        st.write(chord_props)
     else:
         reverse_axes_chord = False
         chord_df = vld.hs_populate(reverse_axes_chord, chord_table,srun)
@@ -52,7 +51,7 @@ def inputs(srun: bool):
     brace_table = vld.load_data(code,brace_type)
     if srun:
         reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",brace_table)
-        brace_props = vld.hs_populate(reverse_axes_brace, hs_chosen_brace,srun)
+        brace_props = vld.hs_populate(reverse_axes_brace, hs_chosen_brace, srun)
     else:
         reverse_axes_brace = False
         brace_df = vld.hs_populate(reverse_axes_brace, brace_table,srun)
@@ -155,12 +154,16 @@ def main(srun: bool,chord_type,chord_props,brace_props,
 
     #Calculate stress concentration factors
     if chord_type=="CHS":
-        SCF_ochax, SCF_obax, SCF_bax_min, fig4, ax4 = fnc.SCFochax_func(beta,theta)
-        if srun: SCF_chaxbax_latex, (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs_ch(twogamma/2,tau,theta,
+        try:
+            SCF_ochax, SCF_obax, SCF_bax_min = fnc.SCFochax_func(beta,theta)
+        except:
+            SCF_ochax , SCF_obax, SCF_bax_min = 2, 2, 2
+        if srun: SCF_chaxbax_latex, (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs_hc(twogamma/2,tau,theta,
                                         SCF_ochax[0],SCF_obax[0],SCF_bax_min)
         else:                          (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
                                         SCF_ochax[0],SCF_obax[0],SCF_bax_min)
         if srun:
+            fig4, ax4 = plots.SCF_ochax_plot(beta,SCF_ochax,SCF_obax)
             st.pyplot(fig4)
             st.latex(SCF_chaxbax_latex)
     elif gap:
@@ -168,7 +171,7 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         else:                       SCF_chax = fnc.SCF_chax_gap(beta,twogamma,tau,g_prime,theta)
         if srun: SCF_bax_latex, SCF_bax = fnc.SCF_bax_gap_hc(beta,twogamma,tau,theta)
         else:                   SCF_bax = fnc.SCF_bax_gap(beta,twogamma,tau,theta)
-        if srun: SCF_chch_latex, SCF_chch = fnc.SCF_chch_gap_ch(beta,g_prime)
+        if srun: SCF_chch_latex, SCF_chch = fnc.SCF_chch_gap_hc(beta,g_prime)
         else:                    SCF_chch = fnc.SCF_chch_gap(beta,g_prime)
         if srun:
             st.header("GAP JOINT: $2 \cdot tau <= g^\prime$")
@@ -257,7 +260,7 @@ def main(srun: bool,chord_type,chord_props,brace_props,
     
 if __name__ == '__main__':
     #st.bokeh_chart(inter)
-    results = st.sidebar.checkbox("CHECKED: Choose Size\n UNCHECKED: All Sizes (experimental)",value=False)
+    results = st.sidebar.checkbox("CHECKED: Choose Size\n UNCHECKED: All Sizes (experimental)",value=True)
     if results:
         (chord_type,chord_props,brace_props,
             e,chordspacing,L_chord,div_chord,
@@ -274,16 +277,22 @@ if __name__ == '__main__':
             sigma_max,SCF_ch_op,SCF_br_op) = inputs(results)
         lin_sigma_chord = []
         lin_sigma_brace = []
-        for ch, br in zip(chord_props,brace_props):
-            sigma_chord, sigma_brace = main(results,chord_type,ch,br,
-                        e,chordspacing,L_chord,div_chord,
-                        P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
-                        sigma_max,SCF_ch_op,SCF_br_op)
-            #st.text(f"Chord: {ch[0]*1000,ch[1]*1000,ch[2]*1000}\n"
-            #        f"Brace: {br[0]*1000,br[1]*1000,br[2]*1000}\n"
-            #        f"sigma_chord = {sigma_chord/1e6:.2f}MPa\n"
-            #        f"sigma_brace = {sigma_brace/1e6:.2f}MPa")
-            lin_sigma_chord.append(sigma_chord/1e6)
-            lin_sigma_brace.append(sigma_brace/1e6)
-        plots.bokeh_interactive(lin_sigma_chord, lin_sigma_brace,sigma_max,chord_props,brace_props)
+        chord_ind = []
+        brace_ind = []
+        for ch in chord_props:
+            for br in brace_props:
+                if br[0]<=ch[0]:
+                    sigma_chord, sigma_brace = main(results,chord_type,ch,br,
+                                e,chordspacing,L_chord,div_chord,
+                                P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
+                                sigma_max,SCF_ch_op,SCF_br_op)
+                    #st.text(f"Chord: {ch[0]*1000,ch[1]*1000,ch[2]*1000}\n"
+                    #        f"Brace: {br[0]*1000,br[1]*1000,br[2]*1000}\n"
+                    #        f"sigma_chord = {sigma_chord/1e6:.2f}MPa\n"
+                    #        f"sigma_brace = {sigma_brace/1e6:.2f}MPa")
+                    lin_sigma_chord.append(sigma_chord/1e6)
+                    lin_sigma_brace.append(sigma_brace/1e6)
+                    chord_ind.append([ch[0],ch[1],ch[2]])
+                    brace_ind.append([br[0],br[1],br[2]])
+        plots.bokeh_interactive(lin_sigma_chord, lin_sigma_brace,sigma_max,chord_ind,brace_ind)
 
