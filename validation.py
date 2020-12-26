@@ -51,6 +51,25 @@ def hs_populate(reverse_axes: bool, hs_chosen,srun):
     else:
         return b,h,t,area,I_x,I_y
 
+def overlap_sketch():
+    col1, col2 = st.beta_columns(2)
+    button_open = col1.button('Click to open sketch of overlap')
+    button_close = col2.button('Click to close sketch of overlap')
+    if button_open:
+        st.image(r"data/overlap_calculation.png",use_column_width=True)
+        st.image(r"data/gap_calculation.jpg",use_column_width=True)
+    if button_close:
+        pass
+
+def geometry_sketch():
+    col1, col2 = st.beta_columns(2)
+    button_open = col1.button('Click to open sketch of truss properties')
+    button_close = col2.button('Click to close truss properties')
+    if button_open:
+        st.image(r"data/geometric_parameters.png",use_column_width=True)
+    if button_close:
+        pass
+
 def input_description(label):
     """Create Menu for user input includes
     'Write' - Custom text message

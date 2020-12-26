@@ -6,10 +6,14 @@ import functions as fnc
 import validation as vld
 import plots
 
+
 #Import data and plotting
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+
+#Allow horizontal stacking plots
+from bokeh.layouts import row
 
 #Import unit aware modules
 import forallpeople as u
@@ -114,30 +118,38 @@ def main(srun: bool,chord_type,chord_props,brace_props,
     if srun:
         #Create a container at the top of the page for plotting graphs
         st.header("Results Summary")
+        geom_container = st.beta_container()
+        res_col1, res_col2, res_col3 = st.beta_columns(3)
         results_container = st.beta_container()
         #Expander showing how calculations done
         st.write('## Calculate overlap')
-        with st.beta_expander("Expand for sketch describing overlap calculations:"):
-            st.image(r"data/overlap_calculation.png",use_column_width=True)
-            st.image(r"data/gap_calculation.jpg",use_column_width=True)
+        vld.overlap_sketch()
         #Overlap and geometry plots
         st.latex(overlap_latex)
         fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
-        results_container.pyplot(fig2)
+        geom_container.pyplot(fig2)
         #Render equations and helper drawing
         st.write('## Dimensional Parameters')
-        with st.beta_expander("Expand for sketch describing truss dimensions:"):
-            st.image(r"data/geometric_parameters.png",use_column_width=True)
+        vld.geometry_sketch()
         st.latex(dim_params_latex)
         #Output or stop script for angle, eccentricity, gap checks
         if success:
-            results_container.success(message)
+            geom_container.success(message)
         else:
-            results_container.error(message)
+            geom_container.error(message)
             st.stop()
-        fig,ax = plots.dim_params_plot(b0*1000,t0*1000,b1*1000,t1*1000,chord_type,
-                                    beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max)
-        results_container.pyplot(fig)
+
+        #Plot dimensional parameters using Altair
+        beta_plot = plots.dim_params_altair('b0',b0*1000,'b1',b1*1000,'β',
+                                    beta_min,beta_max,500)
+        twogamma_plot = plots.dim_params_altair('t0',t0*1000,'b0',b0*1000,'2γ',
+                                    twogamma_min,twogamma_max,20)
+        tau_plot = plots.dim_params_altair('t0',t0*1000,'t1',t1*1000,'τ',
+                                    tau_min,tau_max,20)
+        res_col1.altair_chart(beta_plot, use_container_width=True)
+        res_col2.altair_chart(twogamma_plot, use_container_width=True)
+        res_col3.altair_chart(tau_plot, use_container_width=True)
+        
         #Output or stop script whether dimension parameters are exceeded
         if dim_success:
             results_container.success("PASS - Dimensions are within allowable limits")
@@ -239,7 +251,8 @@ def main(srun: bool,chord_type,chord_props,brace_props,
     return sigma_chord.value, sigma_brace.value
     
 if __name__ == '__main__':
-    #st.bokeh_chart(inter)
+    start = time.time()
+    runtime = st.empty()
     results = st.sidebar.checkbox("CHECKED: Choose Size\n UNCHECKED: All Sizes (experimental)",value=True)
     if results:
         (chord_type,chord_props,brace_props,
@@ -275,4 +288,5 @@ if __name__ == '__main__':
                     chord_ind.append([ch[0],ch[1],ch[2]])
                     brace_ind.append([br[0],br[1],br[2]])
         plots.bokeh_interactive(lin_sigma_chord, lin_sigma_brace,sigma_max,chord_ind,brace_ind)
-
+    end = time.time()
+    runtime.write(f'Runtime: {end-start:.2f}s')

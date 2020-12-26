@@ -1,12 +1,15 @@
 import streamlit as st
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as lines
+import altair as alt
 
+#Bokeh Plots
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, CustomJS
+from bokeh.models import ColumnDataSource, CustomJS, Label
 
 # import function
 from streamlit_bokeh_events import streamlit_bokeh_events
@@ -15,9 +18,44 @@ import forallpeople as u
 u.environment('structural')
 import math
 
+def dim_params_altair(val1_string,val1,val2_string,val2,param_string,min,max,x_max):
+    """
+    Plot the dimensional variables beta, 
+    2*gamma and tau, showing the acceptable range in green highlighted area
+    """
+    x = np.array([0,x_max])
+    source = pd.DataFrame({
+            val1_string: x,
+            'y_max': x * max,
+            'y_min': x * min
+            })
+    source_points = pd.DataFrame({
+            val1_string:val1,
+            val2_string:val2},index=[0])
+    area = alt.Chart(source).mark_area(opacity=0.3).encode(
+        x=val1_string,
+        y='y_min',
+        y2='y_max',
+        color=alt.value("#33bd81")
+        ).properties(title=f'{min} <= {param_string}(={val2_string}/{val1_string}) <= {max}')
+    points = alt.Chart(source_points).mark_point(size=80).encode(
+        x=val1_string,
+        y=val2_string
+    )
+    c = alt.layer(points,area)
+    c.layer[0].encoding.y.title = val2_string + ' (mm)'
+    c.layer[0].encoding.x.title = val1_string + ' (mm)'
+    c.configure_title(
+                fontSize=20,
+                font='Courier',
+                anchor='start',
+                color='gray'
+            )
+    return c
+
 def dim_params_plot(b0,t0,b1,t1,chord_type,beta_min,beta_max,twogamma_min,twogamma_max,tau_min,tau_max):
-    """Plot the dimensional variables beta, 
-    2*gamma and tau, showing the acceptable range in green highlighted area"""
+    """Not used as Altair produces faster results
+    To be removed in future update"""
     # Create Plot
     fig, ax = plt.subplots(ncols=3,figsize=(9,3))
 
@@ -62,6 +100,27 @@ def dim_params_plot(b0,t0,b1,t1,chord_type,beta_min,beta_max,twogamma_min,twogam
     [ax[i].grid() for i in range(3)]
 
     return fig, ax
+
+def dim_params_bokeh(vals:dict,chord_type,min,max):
+    """Not used as Altair produces cleaner results
+    To be removed in future update"""
+    x = np.array([0,500])
+    source = ColumnDataSource(data=dict(x=x,
+                                    min_plot=x*min,
+                                    max_plot=x*max))
+
+    plot = figure()
+    plot.line(x='x',y='max_plot', line_width=2,source=source)
+    plot.line(x='x',y='min_plot', line_width=2,source=source)
+    plot.varea(x='x',y1='max_plot',y2='min_plot',alpha=0.5,color='green',source=source)
+    plot.circle(vals['b0'],vals['b1'],size=20, color="red")
+    plot.xaxis[0].axis_label = 'b0'
+    plot.yaxis[0].axis_label = 'b1'
+    labels = Label(x=vals['b0']+20, y=vals['b1'],
+            text=f"{list(vals.keys())[1]}/{list(vals.keys())[0]}={vals['b1']/vals['b0']}",
+            render_mode='css',text_font_size='2em')
+    plot.add_layout(labels)
+    return plot
 
 def bar_chart(sigma_chord1P,
                 sigma_chord2P,
