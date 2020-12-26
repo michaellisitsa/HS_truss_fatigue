@@ -96,64 +96,36 @@ def check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau):
     return success, message, gap
 
 
-def SCF_chax_overlap(beta,twogamma,tau,Ov,theta):
+def SCF_overlap_rhs(beta,twogamma,tau,Ov,theta):
     """Calculate the stress concentration 
     factor for balanced condition (1) axial stresses in the chord
     overlap joint"""
-    pt1 = 0.5+ 2.38 * beta - 2.87 * beta**2 + 2.18 * beta * Ov + 0.39 * Ov - 1.43 * sin(theta)
-    pt2 = twogamma**0.29 * tau**0.7 * Ov**(0.73-5.53*sin(theta)**2) * sin(theta)**(-0.4-0.08*Ov)
-    SCF_chax = max(pt1 * pt2,2.0) #Balanced Loading condition Chord Forces
-    return SCF_chax
-
-SCF_chax_overlap_hc = handcalc(override="long")(SCF_chax_overlap)
-
-
-def SCF_chax_gap(beta,twogamma,tau,g_prime,theta):
-    """Calculate the stress concentration 
-    factor for balanced condition (1) axial stresses in the chord
-    gap joint"""
-    pt1 = 0.48 * beta - 0.5 * beta**2 - 0.012 / beta + 0.012 / g_prime
-    pt2 =  twogamma**1.72 * tau**0.78 * g_prime**0.2 * sin(theta)**2.09
-    SCF_chax = max(pt1 * pt2,2.0) #Balanced Loading condition Chord Forces
-    return SCF_chax
-SCF_chax_gap_hc = handcalc(override="long")(SCF_chax_gap)
-
-def SCF_bax_overlap(beta,twogamma,tau,Ov,theta):
-    """Calculate the stress concentration 
-    factor for balanced condition (1) axial stresses in the brace
-    overlap joint"""
-    pt1 = 0.15 + 1.1 * beta - 0.48 * beta**2 - 0.14 / Ov
-    pt2 = twogamma**0.55 * tau**(-0.3) * Ov**(-2.57 + 1.62 * beta**2) * sin(theta)**0.31
-    SCF_bax = max(pt1 * pt2,2.0) #Balanced Loading condition Brace Forces
-    return SCF_bax
-SCF_bax_overlap_hc = handcalc(override="long")(SCF_bax_overlap)
-
-def SCF_bax_gap(beta,twogamma,tau,theta):
-    """Calculate the stress concentration 
-    factor for balanced condition (1) axial stresses in the brace
-    gap joint"""
-    pt1 = -0.008 + 0.45 * beta - 0.34 * beta**2
-    pt2 = twogamma**1.36 * tau**(-0.66) * sin(theta)**1.29
-    SCF_bax = max(pt1 * pt2,2.0) #Balanced Loading condition Brace Forces
-    return SCF_bax
-SCF_bax_gap_hc = handcalc(override="long")(SCF_bax_gap)
-
-
-def SCF_chch_overlap(beta):
-    """Calculate the stress concentration 
-    factor for unbalanced condition (2) stresses in the chord
-    overlap joint"""
+    chax_pt1 = 0.5+ 2.38 * beta - 2.87 * beta**2 + 2.18 * beta * Ov + 0.39 * Ov - 1.43 * sin(theta)
+    chax_pt2 = twogamma**0.29 * tau**0.7 * Ov**(0.73-5.53*sin(theta)**2) * sin(theta)**(-0.4-0.08*Ov)
+    bax_pt1 = 0.15 + 1.1 * beta - 0.48 * beta**2 - 0.14 / Ov
+    bax_pt2 = twogamma**0.55 * tau**(-0.3) * Ov**(-2.57 + 1.62 * beta**2) * sin(theta)**0.31
+    SCF_chax = max(chax_pt1 * chax_pt2,2.0) #Balanced Loading condition Chord Forces
+    SCF_bax = max(bax_pt1 * bax_pt2,2.0) #Balanced Loading condition Brace Forces
     SCF_chch = max(1.2 + 1.46 * beta - 0.028 * beta**2,2.0) #Unbalanced loading condition Chord Forces
-    return SCF_chch
-SCF_chch_overlap_hc = handcalc(override="long")(SCF_chch_overlap)
+    return SCF_chax, SCF_bax, SCF_chch
 
-def SCF_chch_gap(beta,g_prime):
+SCF_overlap_rhs_hc = handcalc(override="long")(SCF_overlap_rhs)
+
+
+def SCF_gap_rhs(beta,twogamma,tau,g_prime,theta):
     """Calculate the stress concentration 
-    factor for unbalanced condition (2) stresses in the chord
+    factor for balanced condition (1) axial stresses in the chord
     gap joint"""
+    chax_pt1 = 0.48 * beta - 0.5 * beta**2 - 0.012 / beta + 0.012 / g_prime
+    chax_pt2 =  twogamma**1.72 * tau**0.78 * g_prime**0.2 * sin(theta)**2.09
+    bax_pt1 = -0.008 + 0.45 * beta - 0.34 * beta**2
+    bax_pt2 = twogamma**1.36 * tau**(-0.66) * sin(theta)**1.29
+    SCF_chax = max(chax_pt1 * chax_pt2,2.0) #Balanced Loading condition Chord Forces
+    SCF_bax = max(bax_pt1 * bax_pt2,2.0) #Balanced Loading condition Brace Forces
     SCF_chch = max((2.45 + 1.23 * beta) * g_prime**-0.27,2.0) #Unbalanced loading condition Chord Forces
-    return SCF_chch
-SCF_chch_gap_hc = handcalc(override="long")(SCF_chch_gap)
+    return SCF_chax, SCF_bax, SCF_chch
+
+SCF_gap_rhs_hc = handcalc(override="long")(SCF_gap_rhs)
 
 def chord_ax_stresses(SCF_chax,SCF_chch,P_brace,P_chord,theta,A_chord,A_brace):
     """Calculate the axial stresses in the 

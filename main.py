@@ -167,38 +167,17 @@ def main(srun: bool,chord_type,chord_props,brace_props,
             st.pyplot(fig4)
             st.latex(SCF_chaxbax_latex)
     elif gap:
-        if srun: SCF_chax_latex, SCF_chax = fnc.SCF_chax_gap_hc(beta,twogamma,tau,g_prime,theta)
-        else:                       SCF_chax = fnc.SCF_chax_gap(beta,twogamma,tau,g_prime,theta)
-        if srun: SCF_bax_latex, SCF_bax = fnc.SCF_bax_gap_hc(beta,twogamma,tau,theta)
-        else:                   SCF_bax = fnc.SCF_bax_gap(beta,twogamma,tau,theta)
-        if srun: SCF_chch_latex, SCF_chch = fnc.SCF_chch_gap_hc(beta,g_prime)
-        else:                    SCF_chch = fnc.SCF_chch_gap(beta,g_prime)
+        if srun: SCF_latex_rhs, (SCF_chax, SCF_bax, SCF_chch) = fnc.SCF_gap_rhs_hc(beta,twogamma,tau,g_prime,theta)
+        else:                       (SCF_chax, SCF_bax, SCF_chch) = fnc.SCF_gap_rhs(beta,twogamma,tau,g_prime,theta)
         if srun:
             st.header("GAP JOINT: $2 \cdot tau <= g^\prime$")
-            st.write("### $SCF_{chax}$")
-            st.latex(SCF_chax_latex)
-            st.write("### $SCF_{bax}$")
-            st.latex(SCF_bax_latex)
-            st.write("### $SCF_{chch}$")
-            st.latex(SCF_chch_latex)
+            st.latex(SCF_latex_rhs)
     else:
-        if srun: SCF_chax_latex, SCF_chax = fnc.SCF_chax_overlap_hc(beta,twogamma,tau,Ov,theta)
-        else:                    SCF_chax = fnc.SCF_chax_overlap(beta,twogamma,tau,Ov,theta)
-        if srun: SCF_bax_latex, SCF_bax = fnc.SCF_bax_overlap_hc(beta,twogamma,tau,Ov,theta)
-        else:                      SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
-        if srun: SCF_bax_latex, SCF_bax = fnc.SCF_bax_overlap_hc(beta,twogamma,tau,Ov,theta)
-        else:                      SCF_bax = fnc.SCF_bax_overlap(beta,twogamma,tau,Ov,theta)
-        if srun: SCF_chch_latex, SCF_chch = fnc.SCF_chch_overlap_hc(beta)
-        else:                       SCF_chch = fnc.SCF_chch_overlap(beta)
+        if srun: SCF_latex_rhs, (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_overlap_rhs_hc(beta,twogamma,tau,Ov,theta)
+        else:                    (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_overlap_rhs(beta,twogamma,tau,Ov,theta)
         if srun:
             st.header("OVERLAP JOINT: $0.5 <= O_v <= 1.0$:")
-            st.write("### $SCF_{chax}$")
-            st.latex(SCF_chax_latex)
-            st.write("### $SCF_{bax}$")
-            st.latex(SCF_bax_latex)
-            st.write("### $SCF_{chch}$")
-            st.latex(SCF_chch_latex)
-
+            st.latex(SCF_latex_rhs)
 
     #Calculate all stresses
     if srun: chord_ax_stresses_latex, (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses_hc(SCF_chax, SCF_chch,P_brace * u.kN,P_chord * u.kN,
@@ -227,6 +206,7 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         success_stress = False
 
     if srun:
+        st.write("### Axial Stresses - Chord")
         st.latex(chord_ax_stresses_latex)
         #Calculate Stresses:
         st.markdown("""## Nominal Stress Ranges
@@ -266,10 +246,10 @@ if __name__ == '__main__':
             e,chordspacing,L_chord,div_chord,
             P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
             sigma_max,SCF_ch_op,SCF_br_op) = inputs(results)
-        st.write(main(results,chord_type,chord_props,brace_props,
+        main(results,chord_type,chord_props,brace_props,
                         e,chordspacing,L_chord,div_chord,
                         P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
-                        sigma_max,SCF_ch_op,SCF_br_op))
+                        sigma_max,SCF_ch_op,SCF_br_op)
     else:
         (chord_type,chord_props,brace_props,
             e,chordspacing,L_chord,div_chord,
