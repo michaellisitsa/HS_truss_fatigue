@@ -248,6 +248,67 @@ def geom_plot(h0,theta,g_prime,t0,h1,e,chord_type):
         pass
     return fig,ax
 
+def geom_plot_altair(h0,theta,g_prime,t0,h1,e,chord_type):
+    """
+    Plot the geometry of the chord and brace members incl Centerlines.
+    """
+    #Define variables for brace
+    length = 0.5 #Length of brace to show
+    br_top_x = length * math.cos(theta) #change in x to top of brace
+    br_top_y = length * math.sin(theta) #change in t to top of brace
+    br_bot_left_x = g_prime*t0/2.0 #bottom left intersect of brace with chord
+    p = h1/math.sin(theta)
+
+    #Plot brace shape:
+    brace1_x = np.array([br_bot_left_x,br_bot_left_x+p])
+    source = pd.DataFrame({'x':brace1_x,
+                            'x2':brace1_x + br_top_x,
+                            'y':np.array([h0/2,h0/2+br_top_y])})
+
+    c = alt.Chart(source).mark_area(opacity=0.3).encode(
+        x='x',
+        x2='x2',
+        y='y',
+        color=alt.value("#33bd81")
+        ).properties(title=f'Geometry of joint')
+
+    c.configure_title(
+            fontSize=20,
+            font='Courier',
+            anchor='start',
+            color='gray'
+        )
+    return c
+
+    # brace1_points = [
+    #             [br_bot_left_x,                 h0/2],
+    #             [br_bot_left_x + br_top_x,      h0/2 + br_top_y],
+    #             [br_bot_left_x + p + br_top_x,  h0/2 + br_top_y],
+    #             [br_bot_left_x + p,             h0/2]
+    #                 ]
+    # brace2_points = [
+    #         [-br_bot_left_x,                 h0/2],
+    #         [-br_bot_left_x - br_top_x,      h0/2 + br_top_y],
+    #         [-br_bot_left_x - p - br_top_x,  h0/2 + br_top_y],
+    #         [-br_bot_left_x - p,             h0/2]
+    #             ]
+     
+    # x = np.array([0,x_max])
+    # source = pd.DataFrame({
+    #         val1_string: x,
+    #         'y_max': x * max,
+    #         'y_min': x * min
+    #         })
+    # source_points = pd.DataFrame({
+    #         val1_string:val1,
+    #         val2_string:val2},index=[0])
+    # area = alt.Chart(source).mark_area(opacity=0.3).encode(
+    #     x=val1_string,
+    #     y='y_min',
+    #     y2='y_max',
+    #     color=alt.value("#33bd81")
+    #     ).properties(title=f'{min} <= {param_string}(={val2_string}/{val1_string}) <= {max}')
+
 def SCF_ochax_plot(beta,SCF_ochax,SCF_obax):
     #Create graph to visualise answer on graph
     fig, ax = plt.subplots(1,2)

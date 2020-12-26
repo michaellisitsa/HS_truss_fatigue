@@ -126,8 +126,10 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         vld.overlap_sketch()
         #Overlap and geometry plots
         st.latex(overlap_latex)
-        fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
-        geom_container.pyplot(fig2)
+        c_geo = plots.geom_plot_altair(h0,theta,g_prime,t0,h1,e,chord_type)
+        geom_container.altair_chart(c_geo)
+        # fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
+        # geom_container.pyplot(fig2)
         #Render equations and helper drawing
         st.write('## Dimensional Parameters')
         vld.geometry_sketch()
