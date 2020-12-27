@@ -128,8 +128,6 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         st.latex(overlap_latex)
         c_geo = plots.geom_plot_altair(h0,theta,g_prime,t0,h1,e,chord_type)
         geom_container.altair_chart(c_geo)
-        # fig2, ax2 = plots.geom_plot(h0,theta,g_prime,t0,h1,e,chord_type)
-        # geom_container.pyplot(fig2)
         #Render equations and helper drawing
         st.write('## Dimensional Parameters')
         vld.geometry_sketch()
@@ -139,6 +137,8 @@ def main(srun: bool,chord_type,chord_props,brace_props,
             geom_container.success(message)
         else:
             geom_container.error(message)
+            end = time.time()
+            runtime.write(f'Runtime: {end-start:.2f}s')
             st.stop()
 
         #Plot dimensional parameters using Altair
@@ -157,7 +157,9 @@ def main(srun: bool,chord_type,chord_props,brace_props,
             results_container.success("PASS - Dimensions are within allowable limits")
         else:
             results_container.error("FAIL - Dimensional Parameters exceeded.")
-            st.stop()    
+            end = time.time()
+            runtime.write(f'Runtime: {end-start:.2f}s')
+            st.stop() 
 
         #Calculate SCF values
         st.markdown("""## SCF Calculations
@@ -237,14 +239,14 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         st.markdown("### TOTAL Stresses")
         st.latex(cum_stresses_latex)
         #Stresses Bar Charts
-        fig1, ax1 = plots.bar_chart(sigma_chord1P.value*10**-6, 
+        bar_chart_fig = plots.bar_chart_altair(sigma_chord1P.value*10**-6, 
                                 sigma_chord2P.value*10**-6, 
                                 sigma_chordM_ip.value*10**-6, 
                                 sigma_chordM_op.value*10**-6,
                                 sigma_brace_1P.value*10**-6, 
                                 sigma_braceM_op.value*10**-6,
                                 sigma_max)
-        results_container.pyplot(fig1)
+        results_container.altair_chart(bar_chart_fig,use_container_width=True)
         #Check for stresses and output message
         if success_stress:
             results_container.success("PASS - Stresses are within allowable limits")
