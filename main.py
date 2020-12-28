@@ -6,14 +6,10 @@ import functions as fnc
 import validation as vld
 import plots
 
-
 #Import data and plotting
 import pandas as pd
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 import numpy as np
-
-#Allow horizontal stacking plots
-from bokeh.layouts import row
 
 #Import unit aware modules
 import forallpeople as u
@@ -100,6 +96,7 @@ def main(srun: bool,chord_type,chord_props,brace_props,
     #Unpack section properties
     b0,h0,t0,A_chord,Ix_chord,Iy_chord = chord_props
     b1,h1,t1,A_brace,Ix_brace,Iy_brace = brace_props
+
     #Calculate overlap and Plot geometry and check eccentricity and angle
     #Calculate Dimensional parameters beta, gamma, tau, and check angle, eccentricity, if gap
     if srun: overlap_latex, (Ov,theta,g_prime) = fnc.overlap_hc(L_chord*u.m,chordspacing*u.m,div_chord,e*u.m,h0*u.m,h1*u.m,t0*u.m)
@@ -114,8 +111,17 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         dim_success = True
     else:
         dim_success = False
+    MF_chord = fnc.MF(chord_type,gap,"chord")
+    MF_brace = fnc.MF(chord_type,gap,"brace")
     #Single run outputs
     if srun:
+        #Write Magnification factors to sidebar, and override button to be added in
+        if st.sidebar.checkbox("Click for manual Magnification factor input (T2.1/2.2 defaults used otherwise):"):
+            MF_chord = st.sidebar.number_input("Chord Input:[+-0.05]",1.0,2.0,1.5,0.05)
+            MF_brace = st.sidebar.number_input("Brace Input:[+-0.05]",1.0,2.0,1.3,0.05)
+        else:
+            st.sidebar.markdown(f'MF_chord = {MF_chord}')
+            st.sidebar.markdown(f'MF_brace = {MF_brace}')
         #Create a container at the top of the page for plotting graphs
         st.header("Results Summary")
         geom_container = st.beta_container()
@@ -197,9 +203,9 @@ def main(srun: bool,chord_type,chord_props,brace_props,
 
     #Calculate all stresses
     if srun: chord_ax_stresses_latex, (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses_hc(SCF_chax, SCF_chch,P_brace * u.kN,P_chord * u.kN,
-                                                            theta, A_chord * u.m**2, A_brace * u.m**2)          
+                                                            theta, A_chord * u.m**2, A_brace * u.m**2,MF_chord,MF_brace)          
     else:       (sigma_chord1P, sigma_chord2P) = fnc.chord_ax_stresses(SCF_chax, SCF_chch,P_brace * u.kN,P_chord * u.kN,
-                                                            theta, A_chord * u.m**2, A_brace * u.m**2)  
+                                                            theta, A_chord * u.m**2, A_brace * u.m**2,MF_chord,MF_brace)  
     if srun:    chord_BM_stresses_latex, (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses_hc(h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
                                             M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
                                             Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
@@ -208,10 +214,10 @@ def main(srun: bool,chord_type,chord_props,brace_props,
                                             Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
     if srun: brace_stresses_latex, (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses_hc(b1 * u.m, SCF_bax,
                                                             P_brace * u.kN,A_brace * u.m**2,SCF_br_op,
-                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4)
+                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4,MF_brace)
     else:                           (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses(b1 * u.m, SCF_bax,
                                                             P_brace * u.kN,A_brace * u.m**2,SCF_br_op,
-                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4)
+                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4,MF_brace)
     if srun: cum_stresses_latex, (sigma_chord, sigma_brace) = fnc.cum_stresses_hc(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,
                                                                     sigma_chordM_op,sigma_brace_1P,sigma_braceM_op)
     else:                     (sigma_chord, sigma_brace) = fnc.cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,
@@ -222,8 +228,6 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         success_stress = False
 
     if srun:
-        st.write("### Axial Stresses - Chord")
-        st.latex(chord_ax_stresses_latex)
         #Calculate Stresses:
         st.markdown("""## Nominal Stress Ranges
 
@@ -232,6 +236,8 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         - outer fiber bending stresses of each element defined in Sec 3.3.
 
         ### Axial Stresses - Chord""")
+        st.write("### Axial Stresses - Chord")
+        st.latex(chord_ax_stresses_latex)
         st.write("### Bending Moment Stresses - Chord")
         st.latex(chord_BM_stresses_latex)
         st.write("### Stresses - Brace")

@@ -2,7 +2,7 @@ import streamlit as st
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as lines
 import altair as alt
