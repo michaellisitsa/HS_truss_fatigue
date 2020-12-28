@@ -126,6 +126,9 @@ def geom_plot_altair(h0,theta,g_prime,t0,h1,e,chord_type):
         color=alt.value("#0000FF")
         )
 
+    #Plot brace centerlines using:
+    #- x_CL & y_CL: coordinates of centerline line
+    #- y_CL_label: angle label to be placed at bottom of line
     brace_CL1 = alt.Chart(source).mark_line().encode(
         x='x_CL',
         y='y_CL',

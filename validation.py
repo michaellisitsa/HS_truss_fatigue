@@ -6,6 +6,9 @@ import forallpeople as u
 u.environment('structural')
 from PIL import Image
 
+import sectionproperties.pre.sections as sections
+from sectionproperties.analysis.cross_section import CrossSection
+
 @st.cache
 def load_data(code,chord_type):
     if code == "AS":
@@ -21,9 +24,7 @@ def hs_lookup(hs_type,member_type,chord_table):
     """Select a section size"""
     options = st.sidebar.selectbox("",chord_table,key=member_type)
     hs_chosen = chord_table[chord_table['Dimensions'] == options]
-    reverse_axes = False #member is symmetrical so reverse is not needed for SHS's
-    if hs_type == "RHS":
-        reverse_axes = st.sidebar.checkbox("Rotate 90 degrees W > H",key=member_type)
+    reverse_axes = (st.sidebar.checkbox("Rotate 90 degrees W > H",key=member_type) if hs_type == "RHS" else False)
     return reverse_axes, hs_chosen
 
 #@st.cache
@@ -113,3 +114,21 @@ def input_description(label):
                 type=["png","jpg","jpeg"])
             if image_file is not None:
                 st.image(load_image(image_file),use_column_width=True)
+
+#Class to define SHS Object and allow operations such as analyse geometry
+class shs:
+    def __init__(self,d,b,t,r_out):
+        self.d = d
+        self.b = b
+        self.t = t
+        self.r_out = r_out
+
+    def anal(self,n_r,mesh_sizes):
+        geometry = sections.Rhs(d=self.d, b=self.b, t=self.t, r_out=self.r_out, n_r=n_r)
+        mesh = geometry.create_mesh(mesh_sizes=[mesh_sizes])
+        section = CrossSection(geometry, mesh)
+        geometry.plot_geometry()
+        section.calculate_geometric_properties()
+        self.area = section.get_area()
+        (self.ixx, self.iyy, self.ixy) = section.get_ic()
+

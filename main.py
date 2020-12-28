@@ -29,41 +29,55 @@ def inputs(srun: bool):
     #Create Menu for various options
     vld.input_description("Click here to add custom description, sketch or image")    
 
-    #Create section picker in streamlit sidebar
+    #Pick 'code' either Australian or Eurocode sections.
+    #Choose SHS/RHS vs CHS.
+    #Vary brace options based on what was chosen for chord
     st.sidebar.markdown("## Hollow Section Sizes")
     code = st.sidebar.radio("Which code:",["AS","EN"])
+
+    #Chord Data Loading
     chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=0)
     chord_table = vld.load_data(code,chord_type)
     if srun:
+        #display input dialogue and populate from csv
         reverse_axes_chord, hs_chosen_chord = vld.hs_lookup(chord_type,"chord",chord_table)
         chord_props = vld.hs_populate(reverse_axes_chord, hs_chosen_chord,srun)
     else:
+        #Generate list of properties for chord to be used in scatter plot
         reverse_axes_chord = False
         chord_df = vld.hs_populate(reverse_axes_chord, chord_table,srun)
         chord_props = []
         for b,h,t,area,I_x,I_y in zip(chord_df[0],chord_df[1],chord_df[2],chord_df[3],chord_df[4],chord_df[5]):
             chord_props.append((b,h,t,area,I_x,I_y))
-    if chord_type == "CHS":
-        st.sidebar.markdown("Choose Size of Brace")
-        brace_type = "CHS"
-    else:
-        brace_type = st.sidebar.radio("Choose Type of Brace:",("SHS","RHS"))
+    
+    #Brace Data Loading
+    brace_type = ("CHS" if chord_type == "CHS" else st.sidebar.radio("Choose Type of Brace:",("SHS","RHS")))
     brace_table = vld.load_data(code,brace_type)
     if srun:
-        reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",brace_table)
-        brace_props = vld.hs_populate(reverse_axes_brace, hs_chosen_brace, srun)
+        if st.sidebar.checkbox("Custom Section:"):
+            #TODO - add call to section properties class from validation
+            #chord = vld.shs(h0.value,b0.value,t0.value,2.5 * t0.value)
+            #chord.anal(8,t0.value**2)
+
+            #defaults to default library section picker for now 
+            reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",brace_table)
+            brace_props = vld.hs_populate(reverse_axes_brace, hs_chosen_brace, srun)
+            pass
+        else:
+            #display input dialogue and populate from csv
+            reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",brace_table)
+            brace_props = vld.hs_populate(reverse_axes_brace, hs_chosen_brace, srun)
     else:
+        #Generate list of properties for chord to be used in scatter plot
         reverse_axes_brace = False
         brace_df = vld.hs_populate(reverse_axes_brace, brace_table,srun)
         brace_props = []
         for b,h,t,area,I_x,I_y in zip(brace_df[0],brace_df[1],brace_df[2],brace_df[3],brace_df[4],brace_df[5]):
             brace_props.append((b,h,t,area,I_x,I_y))
+
     #Create Truss geometry input in streamlit sidebar
     st.sidebar.markdown('## Truss Geometry:')
-    if chord_type == "CHS":
-        e = 0
-    else:
-        e = st.sidebar.number_input('Eccentricity',-400,400,-100,step=5,format='%f') / 1000
+    e = (0 if chord_type == "CHS" else st.sidebar.number_input('Eccentricity',-400,400,-100,step=5,format='%f') / 1000)
     chordspacing = st.sidebar.number_input('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
     L_chord = st.sidebar.number_input('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
     div_chord = st.sidebar.number_input('Chord divisions',1,20,4,step=1,format='%i')
@@ -105,12 +119,8 @@ def main(srun: bool,chord_type,chord_props,brace_props,
     else:                         (beta, twogamma, tau) = fnc.dim_params(b0=b0*u.m,t0=t0*u.m,b1=b1*u.m,t1=t1*u.m,chord_type=chord_type)
     success, message, gap = fnc.check_angle_ecc_gap(chord_type,theta,e,h0,Ov,g_prime,tau)
     tau_min,tau_max,beta_min,beta_max,twogamma_min,twogamma_max = fnc.dim_limits(chord_type)
-    if (beta_min <= beta <= beta_max
-        and twogamma_min <= twogamma <= twogamma_max
-        and tau_min <= tau <= tau_max):
-        dim_success = True
-    else:
-        dim_success = False
+    dim_success = (True if (beta_min <= beta <= beta_max 
+        and twogamma_min <= twogamma <= twogamma_max and tau_min <= tau <= tau_max) else False)
     MF_chord = fnc.MF(chord_type,gap,"chord")
     MF_brace = fnc.MF(chord_type,gap,"brace")
     #Single run outputs
@@ -185,8 +195,8 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         else:                          (SCF_chax,SCF_bax,SCF_chch) = fnc.SCF_chaxbaxchch_chs(twogamma/2,tau,theta,
                                         SCF_ochax[0],SCF_obax[0],SCF_bax_min)
         if srun:
-            fig4, ax4 = plots.SCF_ochax_plot(beta,SCF_ochax,SCF_obax)
-            st.pyplot(fig4)
+            fig_SCFo_chs, ax_SCFo_chs = plots.SCF_ochax_plot(beta,SCF_ochax,SCF_obax)
+            st.pyplot(fig_SCFo_chs)
             st.latex(SCF_chaxbax_latex)
     elif gap:
         if srun: SCF_latex_rhs, (SCF_chax, SCF_bax, SCF_chch) = fnc.SCF_gap_rhs_hc(beta,twogamma,tau,g_prime,theta)
@@ -222,10 +232,7 @@ def main(srun: bool,chord_type,chord_props,brace_props,
                                                                     sigma_chordM_op,sigma_brace_1P,sigma_braceM_op)
     else:                     (sigma_chord, sigma_brace) = fnc.cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,
                                                                     sigma_chordM_op,sigma_brace_1P,sigma_braceM_op)
-    if sigma_chord <= sigma_max * u.MPa and sigma_brace <= sigma_max * u.MPa:
-        success_stress = True
-    else:
-        success_stress = False
+    success_stress = (True if sigma_chord <= sigma_max * u.MPa and sigma_brace <= sigma_max * u.MPa else False)
 
     if srun:
         #Calculate Stresses:
@@ -234,7 +241,7 @@ def main(srun: bool,chord_type,chord_props,brace_props,
         Nominal stresses are obtained by getting:
         - principal stresses 
         - outer fiber bending stresses of each element defined in Sec 3.3.
-
+        
         ### Axial Stresses - Chord""")
         st.write("### Axial Stresses - Chord")
         st.latex(chord_ax_stresses_latex)
