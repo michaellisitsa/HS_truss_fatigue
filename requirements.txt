@@ -8,3 +8,4 @@ streamlit_drawable_canvas
 pillow
 bokeh
 streamlit-bokeh-events
+sectionproperties
