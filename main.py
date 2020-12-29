@@ -39,9 +39,17 @@ def inputs(srun: bool):
     chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=0)
     chord_table = vld.load_data(code,chord_type)
     if srun:
-        #display input dialogue and populate from csv
-        reverse_axes_chord, hs_chosen_chord = vld.hs_lookup(chord_type,"chord",chord_table)
-        chord_props = vld.hs_populate(reverse_axes_chord, hs_chosen_chord,srun)
+        if st.sidebar.checkbox("Custom Section:",key="custom_sec_chord"):
+            d0 = st.sidebar.number_input("Chord Height/Diameter (mm)",min_value=20.,max_value=1000.,value=200.,step=10.) / 1000
+            b0 = (d0 if chord_type == "CHS" else st.sidebar.number_input("Chord Width (mm)",min_value=20.,max_value=1000.,value=200.,step=10.) / 1000)
+            t0 = st.sidebar.number_input("Chord Thick (mm)",min_value=4.,max_value=30.,value=10.,step=1.) / 1000
+            chord_func = vld.hs(d0,t0)
+            (area, ixx, iyy, ixy, j, phi) = (chord_func.chs() if chord_type == "CHS" else chord_func.rhs(b0))
+            chord_props = (b0,d0,t0, area, ixx, iyy)
+        else:
+            #display input dialogue and populate from csv
+            reverse_axes_chord, hs_chosen_chord = vld.hs_lookup(chord_type,"chord",chord_table)
+            chord_props = vld.hs_populate(reverse_axes_chord, hs_chosen_chord,srun)
     else:
         #Generate list of properties for chord to be used in scatter plot
         reverse_axes_chord = False
@@ -54,15 +62,13 @@ def inputs(srun: bool):
     brace_type = ("CHS" if chord_type == "CHS" else st.sidebar.radio("Choose Type of Brace:",("SHS","RHS")))
     brace_table = vld.load_data(code,brace_type)
     if srun:
-        if st.sidebar.checkbox("Custom Section:"):
-            #TODO - add call to section properties class from validation
-            #chord = vld.shs(h0.value,b0.value,t0.value,2.5 * t0.value)
-            #chord.anal(8,t0.value**2)
-
-            #defaults to default library section picker for now 
-            reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",brace_table)
-            brace_props = vld.hs_populate(reverse_axes_brace, hs_chosen_brace, srun)
-            pass
+        if st.sidebar.checkbox("Custom Section:",key="custom_sec_brace"):
+            d1 = st.sidebar.number_input("Brace Height/Diameter (mm)",min_value=20.,max_value=1000.,value=200.,step=10.) / 1000
+            b1 = (d1 if chord_type == "CHS" else st.sidebar.number_input("Brace Width (mm)",min_value=20.,max_value=1000.,value=200.,step=10.) / 1000)
+            t1 = st.sidebar.number_input("Brace Thick (mm)",min_value=4.,max_value=30.,value=10.,step=1.) / 1000
+            brace_func = vld.hs(d1,t1)
+            (area, ixx, iyy, ixy, j, phi) = (brace_func.chs() if brace_type == "CHS" else brace_func.rhs(b1))
+            brace_props = (b1,d1,t1, area, ixx, iyy)
         else:
             #display input dialogue and populate from csv
             reverse_axes_brace, hs_chosen_brace = vld.hs_lookup(brace_type,"brace",brace_table)
@@ -178,11 +184,13 @@ def main(srun: bool,chord_type,chord_props,brace_props,
             st.stop() 
 
         #Calculate SCF values
-        st.markdown("""## SCF Calculations
+        st.markdown("""
+        ## SCF Calculations
         The follow calculations determine the Stress Concentration Factors (SCF) for each:
         - LC1 chord -> $SCF_{ch,ax}$
         - LC1 brace -> $SCF_{b,ax}$
-        - LC2 chord -> $SCF_{ch,ch}$""")
+        - LC2 chord -> $SCF_{ch,ch}$
+        """)
 
     #Calculate stress concentration factors
     if chord_type=="CHS":
@@ -218,16 +226,16 @@ def main(srun: bool,chord_type,chord_props,brace_props,
                                                             theta, A_chord * u.m**2, A_brace * u.m**2,MF_chord,MF_brace)  
     if srun:    chord_BM_stresses_latex, (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses_hc(h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
                                             M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
-                                            Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
+                                            Ix_chord * u.m**4,Iy_chord * u.m**4)
     else:                                 (sigma_chordM_ip, sigma_chordM_op) = fnc.chord_BM_stresses(h0*u.m,b0*u.m,b1*u.m,SCF_chch,SCF_ch_op,
                                             M_ip_chord * u.kN * u.m,M_op_chord * u.kN * u.m,
-                                            Ix_chord * 10**6 * u.m**4,Iy_chord * 10**6 * u.m**4)
+                                            Ix_chord * u.m**4,Iy_chord * u.m**4)
     if srun: brace_stresses_latex, (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses_hc(b1 * u.m, SCF_bax,
                                                             P_brace * u.kN,A_brace * u.m**2,SCF_br_op,
-                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4,MF_brace)
+                                                            M_op_brace * u.kN * u.m,Iy_brace * u.m**4,MF_brace)
     else:                           (sigma_brace_1P, sigma_braceM_op) = fnc.brace_stresses(b1 * u.m, SCF_bax,
                                                             P_brace * u.kN,A_brace * u.m**2,SCF_br_op,
-                                                            M_op_brace * u.kN * u.m,Iy_brace * 10**6 * u.m**4,MF_brace)
+                                                            M_op_brace * u.kN * u.m,Iy_brace * u.m**4,MF_brace)
     if srun: cum_stresses_latex, (sigma_chord, sigma_brace) = fnc.cum_stresses_hc(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,
                                                                     sigma_chordM_op,sigma_brace_1P,sigma_braceM_op)
     else:                     (sigma_chord, sigma_brace) = fnc.cum_stresses(sigma_chord1P,sigma_chord2P,sigma_chordM_ip,
@@ -236,13 +244,15 @@ def main(srun: bool,chord_type,chord_props,brace_props,
 
     if srun:
         #Calculate Stresses:
-        st.markdown("""## Nominal Stress Ranges
+        st.markdown("""
+        ## Nominal Stress Ranges
 
         Nominal stresses are obtained by getting:
         - principal stresses 
         - outer fiber bending stresses of each element defined in Sec 3.3.
         
-        ### Axial Stresses - Chord""")
+        ### Axial Stresses - Chord
+        # """)
         st.write("### Axial Stresses - Chord")
         st.latex(chord_ax_stresses_latex)
         st.write("### Bending Moment Stresses - Chord")
@@ -270,13 +280,13 @@ def main(srun: bool,chord_type,chord_props,brace_props,
 if __name__ == '__main__':
     start = time.time()
     runtime = st.empty()
-    results = st.sidebar.checkbox("CHECKED: Choose Size\n UNCHECKED: All Sizes (experimental)",value=True)
-    if results:
+    srun = st.sidebar.checkbox("CHECKED: Choose Size\n UNCHECKED: All Sizes (experimental)",value=True)
+    if srun:
         (chord_type,chord_props,brace_props,
             e,chordspacing,L_chord,div_chord,
             P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
-            sigma_max,SCF_ch_op,SCF_br_op) = inputs(results)
-        main(results,chord_type,chord_props,brace_props,
+            sigma_max,SCF_ch_op,SCF_br_op) = inputs(srun)
+        main(srun,chord_type,chord_props,brace_props,
                         e,chordspacing,L_chord,div_chord,
                         P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
                         sigma_max,SCF_ch_op,SCF_br_op)
@@ -284,7 +294,7 @@ if __name__ == '__main__':
         (chord_type,chord_props,brace_props,
             e,chordspacing,L_chord,div_chord,
             P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
-            sigma_max,SCF_ch_op,SCF_br_op) = inputs(results)
+            sigma_max,SCF_ch_op,SCF_br_op) = inputs(srun)
         lin_sigma_chord = []
         lin_sigma_brace = []
         chord_ind = []
@@ -292,7 +302,7 @@ if __name__ == '__main__':
         for ch in chord_props:
             for br in brace_props:
                 if br[0]<=ch[0]:
-                    sigma_chord, sigma_brace = main(results,chord_type,ch,br,
+                    sigma_chord, sigma_brace = main(srun,chord_type,ch,br,
                                 e,chordspacing,L_chord,div_chord,
                                 P_chord,P_brace,M_ip_chord,M_op_chord,M_op_brace,
                                 sigma_max,SCF_ch_op,SCF_br_op)

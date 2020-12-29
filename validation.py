@@ -32,17 +32,17 @@ def hs_populate(reverse_axes: bool, hs_chosen,srun):
     if reverse_axes:
         b = hs_chosen['d'] / 1000
         h = hs_chosen['b'] / 1000
-        I_x =  hs_chosen['Iy'] / 1000**4
-        I_y =  hs_chosen['Ix'] / 1000**4
+        I_x =  hs_chosen['Iy'] * 10**6 / 1000**4
+        I_y =  hs_chosen['Ix'] * 10**6 / 1000**4
     else:
         try:
             b = hs_chosen['b'] / 1000
         except:
             b = hs_chosen['d'] / 1000
         h = hs_chosen['d'] / 1000
-        I_x =  hs_chosen['Ix'] / 1000**4
+        I_x =  hs_chosen['Ix'] * 10**6 / 1000**4
         try:
-            I_y =  hs_chosen['Iy'] / 1000**4
+            I_y =  hs_chosen['Iy'] * 10**6 / 1000**4
         except:
             I_y = I_x #In RHS.csv I_y column does not exist, so needs to use I_x for SHS's
     t = hs_chosen['t'] / 1000
@@ -116,19 +116,26 @@ def input_description(label):
                 st.image(load_image(image_file),use_column_width=True)
 
 #Class to define SHS Object and allow operations such as analyse geometry
-class shs:
-    def __init__(self,d,b,t,r_out):
+class hs:
+    def __init__(self,d,t):
         self.d = d
-        self.b = b
         self.t = t
-        self.r_out = r_out
 
-    def anal(self,n_r,mesh_sizes):
-        geometry = sections.Rhs(d=self.d, b=self.b, t=self.t, r_out=self.r_out, n_r=n_r)
-        mesh = geometry.create_mesh(mesh_sizes=[mesh_sizes])
-        section = CrossSection(geometry, mesh)
-        geometry.plot_geometry()
-        section.calculate_geometric_properties()
-        self.area = section.get_area()
-        (self.ixx, self.iyy, self.ixy) = section.get_ic()
+    def rhs(self,b):
+        geometry = sections.Rhs(d=self.d, b=b, t=self.t, r_out=self.t*2.0, n_r=3)
+        mesh = geometry.create_mesh(mesh_sizes=[self.t**2])
+        self.section = CrossSection(geometry, mesh)
+        return self.section.calculate_frame_properties()
+
+    def chs(self):
+        geometry = sections.Chs(d=self.d,t=self.t,n=70)
+        mesh = geometry.create_mesh(mesh_sizes=[self.t**2])
+        self.section = CrossSection(geometry, mesh)
+        return self.section.calculate_frame_properties()
+
+    def visualise(self):
+        fig, ax = self.section.plot_centroids()
+        return fig, ax
+
+    
 
