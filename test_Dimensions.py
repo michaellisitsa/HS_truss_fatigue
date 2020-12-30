@@ -23,3 +23,15 @@ def test_load_data_necessary_columns(section_type):
     assert pd.Series(['d', 'Ix','t','Area']).isin(Dim.hs_data.columns).all()
     if section_type is not Section.CHS: assert "b" in Dim.hs_data
     if section_type is Section.RHS: assert "Iy" in Dim.hs_data
+
+@pytest.mark.parametrize('section_type,options,props',
+                        [(Section.SHS,'400 x 400 x 16.0 SHS',(0.4, 0.4, 0.016, 571e-6, 571e-6, 23700e-6))]
+                        )
+def test_populate(section_type,options,props):
+    Dim = Dimensions.Dimensions(section_type,Member.CHORD,Code.AS)
+    Dim.load_data()
+    Dim.hs_chosen = Dim.hs_data[Dim.hs_data['Dimensions'] == options]
+    Dim.reverse_axes = False
+    Dim.populate()
+    assert (Dim.b, Dim.d, Dim.t,Dim.Iy, Dim.Ix,Dim.area) == props
+
