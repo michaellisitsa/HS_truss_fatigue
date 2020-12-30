@@ -4,8 +4,8 @@ if False:
     import Dimensions
 
 class Parameters:
-    def __init__(self,dims: 'Dimensions'):
-        self.dims = dims
+    def __init__(self,Dims):
+        self.Dims = Dims
     
     def dim_params_method(self):
         @handcalc(override="long")
@@ -17,5 +17,5 @@ class Parameters:
             tau = t1 / t0 #Ratio of brace to chord thickness, where 0.25 < tau <= 1.0
             return beta, twogamma, tau
         self.dim_params_latex, (self.beta, self.twogamma, self.tau) = dim_params_func(
-                                                self.dims.b0, self.dims.t0, 
-                                                self.dims.b1, self.dims.t1)
+                                                self.Dims.b0, self.Dims.t0, 
+                                                self.Dims.b1, self.Dims.t1)
