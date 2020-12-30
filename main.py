@@ -4,15 +4,16 @@ from handcalcs import handcalc
 #Import other files
 import Dimensions
 import Parameters
+from Enum_vals import Section, Member, Code
 
 #Global settings
-code = st.sidebar.radio("Which code:",["AS","EN"])
-chord_type = st.sidebar.radio("Choose Type of Chord:",("SHS","RHS","CHS"),index=0)
+code = Code[st.sidebar.radio("Which code:",[type.name for type in Code])]
+chord_type = Section[st.sidebar.radio("Choose Type of Chord:",[type.name for type in Section],index=0)]
 
 #Instantiate Dimension Instance for Chord
-Dim = Dimensions.Dimensions(chord_type,'chord',code)
+Dim = Dimensions.Dimensions(chord_type,Member.CHORD,code)
 if st.sidebar.checkbox("Custom Section:",key="custom_sec_chord"):
-    Dim.custom_section()
+    Dim.st_custom_sec_picker()
     Dim.frame_props()
     fig, ax = Dim.visualise()
     st.pyplot(fig)
