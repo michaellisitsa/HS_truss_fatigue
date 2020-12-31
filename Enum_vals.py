@@ -21,3 +21,8 @@ class Code(enum.Enum):
    """Choose the code for loading section databases, AS (Australia), EN (Europe)"""
    AS = enum.auto()
    EN = enum.auto()
+
+class Run(enum.Enum):
+   """Choose the type of run"""
+   SINGLE = enum.auto() #Calculates based on 1 set of inputs with handcalcs
+   ALL_SECTIONS = enum.auto() #Calculates based on a set of inputs from a database of sections

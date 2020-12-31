@@ -1,6 +1,8 @@
 import Dimensions
+import Parameters
 import streamlit as st
-from Enum_vals import Section, Member, Code
+from Enum_vals import Section, Member, Code, Run
+
 
 def create_Dim(member:Member,code: Code):
     section_type = Section[st.sidebar.radio(f"Choose Type of {member.name} : ",[type.name for type in Section],index=0)]
@@ -17,3 +19,12 @@ def create_Dim(member:Member,code: Code):
         Dim.populate()
         st.write(vars(Dim))
     return Dim
+
+def create_Prm(Dim_C,Dim_B):
+    #Instantiate Parameters
+    Prm = Parameters.Parameters(Dim_C,Dim_B,Run.SINGLE)
+    Prm.dim_params()
+    st.latex(Prm.dim_params_latex)
+    Prm.geom_picker()
+    Prm.overlap()
+    st.latex(Prm.overlap_latex)
