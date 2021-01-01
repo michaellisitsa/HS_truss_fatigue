@@ -22,7 +22,6 @@ def main():
         st.stop()
 
     Prm = single_run.create_Prm(Dim_C,Dim_B)
-    
 
 if __name__ == '__main__':
     main()

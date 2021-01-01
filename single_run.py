@@ -22,9 +22,13 @@ def create_Dim(member:Member,code: Code):
 
 def create_Prm(Dim_C,Dim_B):
     #Instantiate Parameters
+    geom_container = st.beta_container()
     Prm = Parameters.Parameters(Dim_C,Dim_B,Run.SINGLE)
     Prm.dim_params()
     st.latex(Prm.dim_params_latex)
-    Prm.geom_picker()
-    Prm.overlap()
+    Prm.st_geom_picker()
+    Prm.calc_overlap()
     st.latex(Prm.overlap_latex)
+    Prm.check_geom()
+    Prm.st_message_geom(geom_container)
+    return Prm
