@@ -96,3 +96,8 @@ class Dimensions:
         """
         fig, ax = self.section.plot_centroids()
         return fig, ax
+    
+    def st_summarise_top(self, container):
+        """Function to summarise all dimension parameters in container"""
+        #TODO - create function
+        pass

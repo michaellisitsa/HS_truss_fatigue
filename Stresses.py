@@ -16,10 +16,22 @@ if TYPE_CHECKING:
     from Dimensions import Dimensions
     from Parameters import Parameters
 
-class stress_factors:
+class Stresses:
     def __init__(self,Prm: 'Parameters',run: Run = Run.SINGLE):
         self.Prm = Prm
         self.run = run
+
+    def st_forces_picker(self):
+        """Create Force Inputs"""
+        self.P_chord = st.sidebar.number_input("P_chord (kN)",value=70.0,step=10.0) * 1000 #N
+        self.P_brace = st.sidebar.number_input("P_brace (kN)",value=50.0,step=10.0) * 1000 #N
+        self.M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=5.0,step=10.0) * 1000 #Nm
+        self.M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=5.0,step=10.0) * 1000 #Nm
+        self.M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=5.0,step=10.0) * 1000 #Nm
+
+    def st_SCF_op_picker(self):
+        self.SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
+        self.SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
 
     def SCF(self):
         """Calculate the stress concentration factors

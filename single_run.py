@@ -1,6 +1,6 @@
 import Dimensions
 import Parameters
-import stress_factors
+import Stresses
 import streamlit as st
 from Enum_vals import Section, Member, Code, Run
 
@@ -32,11 +32,13 @@ def create_Prm(Dim_C,Dim_B):
     st.latex(Prm.overlap_latex)
     Prm.check_geom()
     Prm.st_message_geom(geom_container)
+    fig = Prm.geom_plot_altair()
+    st.altair_chart(fig)
     return Prm
 
-def create_SF(Prm: Parameters.Parameters):
+def create_Stress(Prm: Parameters.Parameters):
     """Instantiate stress factors"""
-    SF = stress_factors.stress_factors(Prm, Run.SINGLE)
-    SF.SCF()
-    st.write(SF.SCF_chax)
-    st.latex(SF.SCF_latex)
+    Stress = Stresses.Stresses(Prm, Run.SINGLE)
+    Stress.SCF()
+    st.latex(Stress.SCF_latex)
+    Stress.st_forces_picker()
