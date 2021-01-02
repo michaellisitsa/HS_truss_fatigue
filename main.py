@@ -4,6 +4,7 @@ from handcalcs import handcalc
 #Import other files
 import Dimensions
 import Parameters
+import stress_factors
 import single_run
 from Enum_vals import Section, Member, Code, Run
 
@@ -22,6 +23,8 @@ def main():
         st.stop()
 
     Prm = single_run.create_Prm(Dim_C,Dim_B)
+
+    SF = single_run.create_SF(Prm)
 
 if __name__ == '__main__':
     main()
