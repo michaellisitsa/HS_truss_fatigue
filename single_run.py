@@ -37,6 +37,6 @@ def create_Prm(Dim_C,Dim_B):
 def create_SF(Prm: Parameters.Parameters):
     """Instantiate stress factors"""
     SF = stress_factors.stress_factors(Prm, Run.SINGLE)
-    SF.SCF_overlap_rhs()
+    SF.SCF()
     st.write(SF.SCF_chax)
-    st.latex(SF.overlap_rhs_latex)
+    st.latex(SF.SCF_latex)
