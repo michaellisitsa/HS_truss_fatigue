@@ -120,8 +120,16 @@ class Parameters:
         else:
             container.error(self.message)
             st.stop()
+    
+    def st_forces_picker(self):
+        """Create Force Inputs"""
+        self.P_chord = st.sidebar.number_input("P_chord (kN)",value=70.0,step=10.0) * 1000 #N
+        self.P_brace = st.sidebar.number_input("P_brace (kN)",value=50.0,step=10.0) * 1000 #N
+        self.M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=5.0,step=10.0) * 1000 #Nm
+        self.M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=5.0,step=10.0) * 1000 #Nm
+        self.M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=5.0,step=10.0) * 1000 #Nm
 
-    def geom_plot_altair(self):
+    def geom_plot_altair(self,P_chord = 0,P_brace = 0,M_ip_chord = 0):
         """
         Plot the geometry of the chord and brace members including centerlines.
         """
@@ -205,6 +213,34 @@ class Parameters:
                                     color=alt.value("#FF0000")
         )
 
+        #Unicode arrow codes are: ← → U-2190 U-2192 ⤾ ⤿ U-293e U-293f 
+        Fx_left = 240
+        Fx_right = 220
+        a = {'x': [-(br_bot_left_x + br_top_x + p),
+                     br_bot_left_x + br_top_x + p,
+                     -(br_bot_left_x + br_top_x+ p/2),
+                     br_bot_left_x + br_top_x+ p/2],
+            'angle':[0.,0.,self.theta*180/pi,180-self.theta*180/pi],
+            'y': [0.,0.,0.5,0.5],
+            'name': [f'⤾ {self.M_ip_chord / 1e6} kNm, {(self.P_chord - 2 * self.P_brace * cos(self.theta))/1000:.2f} kN ←',
+                        f'→ {self.P_chord / 1000:.2f} kN, ⤿ {self.M_ip_chord / 1e6} kNm',
+                        f'{self.P_brace / 1000:.2f} kN ←',
+                        f'→ {self.P_brace / 1000:.2f} kN']}
+        df_arrows = pd.DataFrame(a)
+
+        arrow_1 = alt.Chart(df_arrows).encode(
+            x='x',
+            y='y',
+            text='name')
+
+        #The list comprehension for generating arrows at different angles is stated in:
+        #https://stackoverflow.com/questions/55991996/altair-rotate-text-by-value-specified-in-feature
+        arrow_layers = [
+            arrow_1.transform_filter(alt.datum.name == name).mark_text(angle=angle,fontSize=15)
+            for (name, angle) in zip(df_arrows.name, df_arrows.angle)]
+        brace_area1.encoding.x.title = 'X (m)'
+        brace_area1.encoding.y.title = 'Y (m)'
+
         #Where CHS is used, an arc should be plotted at the intersection of brace and chord.
         #Although not precise, this arc indicates the saddle of the circular sections on each other.
         if self.Dim_C.section_type is Section.CHS:
@@ -261,7 +297,7 @@ class Parameters:
                 y2='y_horiz',
                 color=alt.value("#0000FF")
                 )
-            return angle_text + brace_CL1 + brace_CL2 + chord_rect + brace_arc1 + brace_arc2 + brace_area1 + brace_area2
+            return alt.layer(angle_text,brace_CL1,brace_CL2,chord_rect,brace_arc1,brace_arc2,brace_area1,brace_area2,*arrow_layers)
         else:
             #Where SHS or RHS, there is no arc needed because brace sits on top of chord and does not cradle it.
-            return angle_text + brace_CL1 + brace_CL2 + chord_rect + brace_area1 + brace_area2
+            return alt.layer(angle_text,brace_CL1,brace_CL2,chord_rect,brace_area1,brace_area2,*arrow_layers)

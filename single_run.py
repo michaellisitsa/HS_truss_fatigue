@@ -32,6 +32,7 @@ def create_Prm(Dim_C,Dim_B):
     st.latex(Prm.overlap_latex)
     Prm.check_geom()
     Prm.st_message_geom(geom_container)
+    Prm.st_forces_picker()
     fig = Prm.geom_plot_altair()
     st.altair_chart(fig)
     return Prm
@@ -41,4 +42,3 @@ def create_Stress(Prm: Parameters.Parameters):
     Stress = Stresses.Stresses(Prm, Run.SINGLE)
     Stress.SCF()
     st.latex(Stress.SCF_latex)
-    Stress.st_forces_picker()
