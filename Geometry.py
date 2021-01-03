@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Dimensions import Dimensions
 
-class Parameters:
+class Geometry:
     def __init__(self,Dim_C: 'Dimensions',Dim_B: 'Dimensions',run: Run = Run.SINGLE):
         self.Dim_C = Dim_C
         self.Dim_B = Dim_B
@@ -222,8 +222,8 @@ class Parameters:
                      br_bot_left_x + br_top_x+ p/2],
             'angle':[0.,0.,self.theta*180/pi,180-self.theta*180/pi],
             'y': [0.,0.,0.5,0.5],
-            'name': [f'⤾ {self.M_ip_chord / 1e6} kNm, {(self.P_chord - 2 * self.P_brace * cos(self.theta))/1000:.2f} kN ←',
-                        f'→ {self.P_chord / 1000:.2f} kN, ⤿ {self.M_ip_chord / 1e6} kNm',
+            'name': [f'⤾ {self.M_ip_chord / 1000} kNm, {(self.P_chord - 2 * self.P_brace * cos(self.theta))/1000:.2f} kN ←',
+                        f'→ {self.P_chord / 1000:.2f} kN, ⤿ {self.M_ip_chord / 1000} kNm',
                         f'{self.P_brace / 1000:.2f} kN ←',
                         f'→ {self.P_brace / 1000:.2f} kN']}
         df_arrows = pd.DataFrame(a)

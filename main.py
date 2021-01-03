@@ -3,7 +3,7 @@ from handcalcs import handcalc
 
 #Import other files
 import Dimensions
-import Parameters
+import Geometry
 import Stresses
 import single_run
 from Enum_vals import Section, Member, Code, Run
@@ -13,7 +13,7 @@ def main():
     code = Code[st.sidebar.radio("Which code:",[type.name for type in Code])]
     run = Run[st.sidebar.radio("Run Type:",[type.name for type in Run],index=0)]
 
-    #Instantiate dimension parameters
+    #Instantiate dimension Geometry
     Dim_C = single_run.create_Dim(Member.CHORD,code)
     Dim_B = single_run.create_Dim(Member.BRACE,code)
     #Error where CHS is mixed with other section types.
@@ -22,9 +22,9 @@ def main():
         st.sidebar.error("Cannot mix CHS and other types. Calculation terminated")
         st.stop()
 
-    Prm = single_run.create_Prm(Dim_C,Dim_B)
+    Geom = single_run.create_Geom(Dim_C,Dim_B)
 
-    Stress = single_run.create_Stress(Prm)
+    Stress = single_run.create_Stress(Geom)
 
 if __name__ == '__main__':
     main()

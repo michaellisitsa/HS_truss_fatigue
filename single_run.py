@@ -1,5 +1,5 @@
 import Dimensions
-import Parameters
+import Geometry
 import Stresses
 import streamlit as st
 from Enum_vals import Section, Member, Code, Run
@@ -21,24 +21,24 @@ def create_Dim(member:Member,code: Code):
         st.write(vars(Dim))
     return Dim
 
-def create_Prm(Dim_C,Dim_B):
-    """Instantiate Parameters"""
+def create_Geom(Dim_C,Dim_B):
+    """Instantiate Geomery"""
     geom_container = st.beta_container()
-    Prm = Parameters.Parameters(Dim_C,Dim_B,Run.SINGLE)
-    Prm.dim_params()
-    st.latex(Prm.dim_params_latex)
-    Prm.st_geom_picker()
-    Prm.calc_overlap()
-    st.latex(Prm.overlap_latex)
-    Prm.check_geom()
-    Prm.st_message_geom(geom_container)
-    Prm.st_forces_picker()
-    fig = Prm.geom_plot_altair()
+    Geom = Geometry.Geometry(Dim_C,Dim_B,Run.SINGLE)
+    Geom.dim_params()
+    st.latex(Geom.dim_params_latex)
+    Geom.st_geom_picker()
+    Geom.calc_overlap()
+    st.latex(Geom.overlap_latex)
+    Geom.check_geom()
+    Geom.st_message_geom(geom_container)
+    Geom.st_forces_picker()
+    fig = Geom.geom_plot_altair()
     st.altair_chart(fig)
-    return Prm
+    return Geom
 
-def create_Stress(Prm: Parameters.Parameters):
+def create_Stress(Geom: Geometry.Geometry):
     """Instantiate stress factors"""
-    Stress = Stresses.Stresses(Prm, Run.SINGLE)
+    Stress = Stresses.Stresses(Geom, Run.SINGLE)
     Stress.SCF()
     st.latex(Stress.SCF_latex)
