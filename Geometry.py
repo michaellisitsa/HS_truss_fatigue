@@ -1,7 +1,6 @@
 import streamlit as st
 
 from handcalcs import handcalc
-from Enum_vals import Section, Member, Code, Run
 
 import forallpeople as u
 u.environment('structural')
@@ -12,13 +11,16 @@ import pandas as pd
 import altair as alt
 
 import helper_funcs
+from Enum_vals import Section, Member, Code, Run
+from forces import Forces
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Dimensions import Dimensions
+    from forces import Forces
 
 class Geometry:
-    def __init__(self,Dim_C: 'Dimensions',Dim_B: 'Dimensions',run: Run = Run.SINGLE):
+    def __init__(self,Dim_C: 'Dimensions',Dim_B: 'Dimensions', run: Run = Run.SINGLE):
         self.Dim_C = Dim_C
         self.Dim_B = Dim_B
         self.run = run
@@ -120,16 +122,8 @@ class Geometry:
         else:
             container.error(self.message)
             st.stop()
-    
-    def st_forces_picker(self):
-        """Create Force Inputs"""
-        self.P_chord = st.sidebar.number_input("P_chord (kN)",value=70.0,step=10.0) * 1000 #N
-        self.P_brace = st.sidebar.number_input("P_brace (kN)",value=50.0,step=10.0) * 1000 #N
-        self.M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=5.0,step=10.0) * 1000 #Nm
-        self.M_ip_chord = st.sidebar.number_input("M_ip_chord (kNm)",value=5.0,step=10.0) * 1000 #Nm
-        self.M_op_brace = st.sidebar.number_input("M_op_brace (kNm)",value=5.0,step=10.0) * 1000 #Nm
 
-    def geom_plot_altair(self,P_chord = 0,P_brace = 0,M_ip_chord = 0):
+    def geom_plot_altair(self,force: 'Forces'):
         """
         Plot the geometry of the chord and brace members including centerlines.
         """
@@ -222,10 +216,10 @@ class Geometry:
                      br_bot_left_x + br_top_x+ p/2],
             'angle':[0.,0.,self.theta*180/pi,180-self.theta*180/pi],
             'y': [0.,0.,0.5,0.5],
-            'name': [f'⤾ {self.M_ip_chord / 1000} kNm, {(self.P_chord - 2 * self.P_brace * cos(self.theta))/1000:.2f} kN ←',
-                        f'→ {self.P_chord / 1000:.2f} kN, ⤿ {self.M_ip_chord / 1000} kNm',
-                        f'{self.P_brace / 1000:.2f} kN ←',
-                        f'→ {self.P_brace / 1000:.2f} kN']}
+            'name': [f'⤾ {force.M_ip_chord / 1000} kNm, {(force.P_chord - 2 * force.P_brace * cos(self.theta))/1000:.2f} kN ←',
+                        f'→ {force.P_chord / 1000:.2f} kN, ⤿ {force.M_ip_chord / 1000} kNm',
+                        f'{force.P_brace / 1000:.2f} kN ←',
+                        f'→ {force.P_brace / 1000:.2f} kN']}
         df_arrows = pd.DataFrame(a)
 
         arrow_1 = alt.Chart(df_arrows).encode(

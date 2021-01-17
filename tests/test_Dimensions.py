@@ -77,7 +77,6 @@ def test_st_custom_sec_picker(section_type,def_b,def_d,def_t):
     Dim.st_custom_sec_picker(def_d,def_b,def_t)
     assert (def_d/1000,def_b/1000,def_t/1000) == pytest.approx((Dim.d,Dim.b,Dim.t))
 
-
 @pytest.mark.parametrize('section_type,options,props',
                         [(Section.SHS,'400 x 400 x 16.0 SHS',(0.4, 0.4, 0.016, 571e-6, 571e-6, 23700e-6)),
                         (Section.CHS,'508 x 508 x 12.7 SHS',(0.508, 0.508, 0.0127, 606e-6, 606e-6, 19800e-6))])

@@ -1,6 +1,7 @@
 import Dimensions
 import Geometry
 import Stresses
+import forces
 import streamlit as st
 from Enum_vals import Section, Member, Code, Run
 
@@ -32,8 +33,9 @@ def create_Geom(Dim_C,Dim_B):
     st.latex(Geom.overlap_latex)
     Geom.check_geom()
     Geom.st_message_geom(geom_container)
-    Geom.st_forces_picker()
-    fig = Geom.geom_plot_altair()
+    force = forces.Forces()
+    force.st_forces_picker()
+    fig = Geom.geom_plot_altair(force)
     st.altair_chart(fig)
     return Geom
 
