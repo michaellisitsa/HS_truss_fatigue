@@ -1,3 +1,4 @@
+from numpy.lib.type_check import imag
 import streamlit as st
 
 from handcalcs import handcalc
@@ -10,24 +11,25 @@ u.environment('structural')
 from math import sin, cos, tan, atan, pi, sqrt
 from scipy.interpolate import interp2d
 import numpy as np
+import matplotlib.patches as mpatches
+import matplotlib.lines as lines
+from matplotlib import pyplot as plt
+
+from bokeh.models import ColumnDataSource, Grid, LinearAxis, Plot
+from bokeh.plotting import figure, show, output_file, curdoc
+
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Dimensions import Dimensions
     from Geometry import Geometry
 
-class Stresses:
-    def __init__(self,Geom: 'Geometry',run: Run = Run.SINGLE):
-        self.Geom = Geom
-        self.run = run
-
-    def st_SCF_op_picker(self):
-        self.SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
-        self.SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
-
-    def SCF(self):
+class SCFs:
+    def __init__(self, Geom: 'Geometry',run: Run = Run.SINGLE):
         """Calculate the stress concentration factors
         Values vary depending on Section type and whether a gap exists"""
+        self.Geom = Geom
+        self.run = run
         self.SCF_ochax, self.SCF_obax, self.SCF_bax_min = None, None, None
 
         if self.Geom.Dim_C.section_type is Section.CHS:
@@ -83,3 +85,37 @@ class Stresses:
         self.SCF_latex, (self.SCF_chax,
                                 self.SCF_bax,
                                 self.SCF_chch) = helper_funcs.func_by_run_type(self.run,args,SCF_func)
+
+    def SCF_ochax_plot(self):
+        #Create graph to visualise answer on graph
+        fig, ax = plt.subplots(1,2)
+        SCF_ochax_img = plt.imread("data/SCFochax.png")
+        SCF_obax_img = plt.imread("data/SCFobax.png")
+        ax[0].imshow(SCF_ochax_img, extent=[0, 1, 0, 4])
+        ax[1].imshow(SCF_obax_img, extent=[0, 1, 0, 4])
+        ax[0].set_title(r"$SCF_{o,ch,ax}$")
+        ax[1].set_title(r"$SCF_{o,b,ax}$")
+        ax[0].plot(self.Geom.beta,self.SCF_ochax,'ro')
+        ax[1].plot(self.Geom.beta,self.SCF_obax,'ro')
+        ax[0].set_aspect(0.25)
+        ax[1].set_aspect(0.25)
+        return fig
+
+    # def SCF_ochax_bokeh(self):
+    #     SCF_ochax_img = r"data/SCFochax.png"
+    #     SCF_obax_img = r"data/SCFobax.png"
+    #     SCF_ochax_src = ColumnDataSource(dict(url = [SCF_ochax_img]))
+    #     SCF_obax_src = ColumnDataSource(dict(url = [SCF_obax_img]))
+    #     x_range = (-20,-10) # could be anything - e.g.(0,1)
+    #     y_range = (20,30)
+    #     p = figure(match_aspect=True,x_range=x_range, y_range=y_range)
+    #     p.image_url(url='url', x=x_range[0],y=y_range[1],w=x_range[1]-x_range[0],h=y_range[1]-y_range[0],source=SCF_ochax_src)
+    #     ## could also leave out keywords
+    #     # p.image_url(['tree.png'], 0, 1, 0.8, h=0.6) 
+    #     doc = curdoc()
+    #     doc.add_root(p)
+    #     st.bokeh_chart(p)
+
+def st_SCF_op_picker(self):
+    self.SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
+    self.SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)

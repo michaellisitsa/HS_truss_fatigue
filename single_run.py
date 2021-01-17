@@ -12,16 +12,12 @@ def create_Dim(member:Member, code: Code):
     #Instantiate Dimension Instance for Chord
     if st.sidebar.checkbox("Custom Section:",key=f"custom_sec_{member.name}"):
         d, b, t = Dimensions.st_custom_sec_picker(section_type, member)
-        Dim = Dimensions.custom_sec(section_type, member, d, b, t)
-        Dim.visualise()
-        st.write(vars(Dim))
+        return Dimensions.custom_sec(section_type, member, d, b, t)
     else:
         #For standard sections from catalogue
         section_db = Dimensions.Section_DB(section_type, member, code)
         hs_chosen, reverse_axes = Dimensions.st_lookup(section_db.hs_data, section_type, member)
-        Dim = Dimensions.database_sec(section_type, member, section_db.hs_data, hs_chosen, reverse_axes)
-        st.write(vars(Dim))
-    return Dim
+        return Dimensions.database_sec(section_type, member, section_db.hs_data, hs_chosen, reverse_axes)
 
 def create_Geom(Dim_C,Dim_B):
     """Instantiate Geomery"""
@@ -38,7 +34,8 @@ def create_Geom(Dim_C,Dim_B):
 
 def create_Stress(Geom: Geometry.Geometry):
     """Instantiate stress factors"""
-    Stress = Stresses.Stresses(Geom, Run.SINGLE)
-    Stress.SCF()
+    Stress = Stresses.SCFs(Geom, Run.SINGLE)
     st.latex(Stress.SCF_latex)
+    st.pyplot(Stress.SCF_ochax_plot())
+    Stress.SCF_ochax_bokeh()
 

@@ -1,8 +1,9 @@
 
-"""This file shows how you can manually perform calculations without using the Streamlit app"""
+"""This file shows how you can manually perform calculations without using the Streamlit app
+Parts of the app can therefore be re-used elsewhere, such as the custom or section_DB API call to get section properties"""
 
 import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # type: ignore[comparison-overlap]
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 

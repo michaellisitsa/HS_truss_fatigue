@@ -155,9 +155,9 @@ def geom_plot_altair(force: Forces.Forces, geom: Geometry.Geometry):
         #x = rsinθ + c[x], y = rcosθ + c[y] are for a circle centered at (c[x],c[y])
         #where c is defined above
         arc1_x = np.linspace(2*pi/2 - theta,2*pi/2 + theta,num=20)
-        source_arc = pd.DataFrame({'x':abs(c+x)*np.sin(arc1_x)-c.real,
-                                    'x_neg':-abs(c+x)*np.sin(arc1_x)+c.real,
-                                    'y':abs(c+x)*np.cos(arc1_x)-c.imag,
+        source_arc = pd.DataFrame({'x':np.subtract(np.multiply(abs(c+x),np.sin(arc1_x)),c.real),
+                                    'x_neg':np.add(np.multiply(-abs(c+x),np.sin(arc1_x)),c.real),
+                                    'y':np.subtract(np.multiply(abs(c+x),np.cos(arc1_x)),c.imag),
                                     'y_horiz':geom.Dim_C.d/2})
 
         #Altair mark_area function plots lines [x,y] and [x,y_horiz] and fills vertically

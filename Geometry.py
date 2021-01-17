@@ -11,10 +11,12 @@ import helper_funcs
 from Enum_vals import Section, Member, Code, Run
 import Dimensions
 
-from typing import Union
+from typing import Union, Any
 
 class Geometry:
-    def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
+    def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],
+                      Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], 
+                      e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
         self.Dim_C = Dim_C
         self.Dim_B = Dim_B
         self.run = run
@@ -23,16 +25,16 @@ class Geometry:
         self.L_chord = L_chord
         self.div_chord = div_chord
 
-        args = {'b_0':self.Dim_C.b * u.m,
-                'h_0':self.Dim_C.d * u.m,
-                't_0':self.Dim_C.t * u.m,
-                'b_1':self.Dim_B.b * u.m,
-                'h_1':self.Dim_B.d * u.m,
-                't_1':self.Dim_B.t * u.m,
-                'L_chord':self.L_chord * u.m,
-                'chordspacing':self.chordspacing * u.m,
+        args = {'b_0':self.Dim_C.b * u.m, # type: ignore
+                'h_0':self.Dim_C.d * u.m, # type: ignore
+                't_0':self.Dim_C.t * u.m, # type: ignore
+                'b_1':self.Dim_B.b * u.m, # type: ignore
+                'h_1':self.Dim_B.d * u.m, # type: ignore
+                't_1':self.Dim_B.t * u.m, # type: ignore
+                'L_chord':self.L_chord * u.m, # type: ignore
+                'chordspacing':self.chordspacing * u.m, # type: ignore
                 'div_chord':self.div_chord,
-                'e':self.e * u.m}
+                'e':self.e * u.m} # type: ignore
         
         def check_geom_func(b_0,h_0,t_0,b_1,h_1,t_1,L_chord,chordspacing,div_chord,e):
             """Calculate the dimensional variables beta, 

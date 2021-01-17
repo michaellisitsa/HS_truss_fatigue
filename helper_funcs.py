@@ -13,4 +13,6 @@ def func_by_run_type(run: 'Run',args: dict, Func: Callable):
         latex, vals = handcalc(override="long")(Func)(**args)
     elif run is Run.ALL_SECTIONS:
         vals = Func(**args)
+    else:
+        vals = [] #will cause an error and execution to stop
     return latex, vals
