@@ -13,12 +13,12 @@ import helper_funcs
 from Enum_vals import Section, Member, Code, Run
 from forces import Forces
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from Dimensions import Dimensions
+from typing import Union
+
+import Dimensions
 
 class Geometry:
-    def __init__(self,Dim_C: 'Dimensions',Dim_B: 'Dimensions', e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
+    def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
         self.Dim_C = Dim_C
         self.Dim_B = Dim_B
         self.run = run
