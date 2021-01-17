@@ -1,5 +1,5 @@
 import Geometry
-import forces
+import Forces
 from math import sin, cos, asin, pi
 import pandas as pd
 import numpy as np
@@ -7,7 +7,7 @@ import altair as alt
 from Enum_vals import Section, Member, Code, Run
 
 
-def geom_plot_altair(force: forces.Forces, geom: Geometry.Geometry):
+def geom_plot_altair(force: Forces.Forces, geom: Geometry.Geometry):
     """
     Plot the geometry of the chord and brace members including centerlines.
     """

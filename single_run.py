@@ -1,8 +1,7 @@
 import Dimensions
 import Geometry
 import Stresses
-import forces
-import st_funcs
+import Forces
 import streamlit as st
 from Enum_vals import Section, Member, Code, Run
 import plotting_funcs
@@ -18,20 +17,20 @@ def create_Dim(member:Member, code: Code):
         st.write(vars(Dim))
     else:
         #For standard sections from catalogue
-        hs_data = Dimensions.load_data(section_type, member, code)
-        hs_chosen, reverse_axes = Dimensions.st_lookup(hs_data, section_type, member)
-        Dim = Dimensions.database_sec(section_type, member, hs_data, hs_chosen, reverse_axes)
+        section_db = Dimensions.Section_DB(section_type, member, code)
+        hs_chosen, reverse_axes = Dimensions.st_lookup(section_db.hs_data, section_type, member)
+        Dim = Dimensions.database_sec(section_type, member, section_db.hs_data, hs_chosen, reverse_axes)
         st.write(vars(Dim))
     return Dim
 
 def create_Geom(Dim_C,Dim_B):
     """Instantiate Geomery"""
     geom_container = st.beta_container()
-    e, chordspacing, L_chord, div_chord = st_funcs.st_geom_picker(Dim_C)
+    e, chordspacing, L_chord, div_chord = Geometry.st_geom_picker(Dim_C)
     Geom = Geometry.Geometry(Dim_C, Dim_B,e, chordspacing, L_chord, div_chord, Run.SINGLE)
     st.latex(Geom.check_geom_latex)
     Geom.st_message_geom(geom_container)
-    force = forces.Forces()
+    force = Forces.Forces()
     force.st_forces_picker()
     fig = plotting_funcs.geom_plot_altair(force=force,geom=Geom)
     st.altair_chart(fig)

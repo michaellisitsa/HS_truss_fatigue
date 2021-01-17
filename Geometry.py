@@ -1,21 +1,17 @@
 import streamlit as st
 
 from handcalcs import handcalc
-
 import forallpeople as u
 u.environment('structural')
 
 from math import sin, cos, tan, atan, pi, asin
 import numpy as np
-import pandas as pd
 
 import helper_funcs
 from Enum_vals import Section, Member, Code, Run
-from forces import Forces
+import Dimensions
 
 from typing import Union
-
-import Dimensions
 
 class Geometry:
     def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
@@ -101,9 +97,21 @@ class Geometry:
         self.success, self.message, self.gap = success, message, gap
 
     def st_message_geom(self,container):
-        #Output or stop script for angle, eccentricity, gap checks
+        """Output or stop script for angle, 
+        eccentricity, gap checks"""
         if self.success:
             container.success(self.message)
         else:
             container.error(self.message)
             st.stop()
+
+def st_geom_picker(Dim_C: Dimensions.Dimensions):
+    """
+    Create Streamlit input boxes for various geometry properties, and return those.
+    Dim_C: Dimension of chord check for CHS which must have zero eccentricity
+    """
+    e = (0 if Dim_C.section_type is Section.CHS else st.sidebar.number_input('Eccentricity',-400,400,-100,step=5,format='%f') / 1000)
+    chordspacing = st.sidebar.number_input('Chord spacing (mm)',100,4000,2000,step=50,format='%i') / 1000
+    L_chord = st.sidebar.number_input('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
+    div_chord = st.sidebar.number_input('Chord divisions',1,20,4,step=1,format='%i')
+    return e, chordspacing, L_chord, div_chord

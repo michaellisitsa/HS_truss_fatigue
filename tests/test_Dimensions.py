@@ -93,5 +93,5 @@ def test_calculate_custom_sec(section_type,options,props):
     Iy_compare = props[4]
     area_compare = props[5]
     Dim.calculate_custom_sec()
-    assert (Dim.Iy, Dim.Ix,Dim.area) == pytest.approx((Iy_compare,Ix_compare,area_compare),rel=2e-2)
+    assert (Dim.Iy, Dim.Ix, Dim.area) == pytest.approx((Iy_compare,Ix_compare,area_compare),rel=2e-2)
 

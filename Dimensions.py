@@ -11,18 +11,12 @@ class Dimensions:
     def __init__(self, section_type: Section, member_type: Member):
         self.section_type = section_type
         self.member_type = member_type
-    
-    def st_summarise_top(self, container):
-        """Function to summarise all dimensions in container"""
-        #TODO - create function
-        st.write(f"The Section Type defined is {self.section_type}\n"
-                 f"The member_type is {self.member_type}")
 
 class custom_sec(Dimensions):
-    def __init__(self,section_type: Section, member_type: Member,d,b,t):
+    def __init__(self, section_type: Section, member_type: Member, d, b, t):
         """Inits the Database section class
         Generate a section in sectionproperties
-        returns: A tuple of area, ixx, iyy, ixy, j, phi"""
+        returns: A tuple of area, ixx, iyy"""
         self.d = d
         self.b = b
         self.t = t
@@ -74,6 +68,9 @@ class database_sec(Dimensions):
             pass
 
 def st_custom_sec_picker(section_type: Section, member_type: Member, def_d = 400., def_b = 400., def_t = 16.):
+    """
+    Create Streamlit input boxes for dimensions of section, and return in SI units
+    """
     d = st.sidebar.number_input("Height/Diameter (mm)",
                                         min_value=20.,max_value=1000.,
                                         value=def_d,step=10.,key=member_type.name
@@ -90,18 +87,28 @@ def st_custom_sec_picker(section_type: Section, member_type: Member, def_d = 400
     return d, b, t
 
 #@st.cache
-def load_data(section_type: Section, member_type: Member, code: Code):
+class Section_DB:
     """
     Function to load csv data, run before defining a geometry
     """
-    if code is Code.AS:
-        if section_type is Section.SHS:   return pd.read_csv(r"data/SHS.csv",header=0)
-        elif section_type is Section.RHS: return pd.read_csv(r"data/RHS.csv",header=0)
-        elif section_type is Section.CHS: return pd.read_csv(r"data/CHS.csv",header=0)
-    elif code is Code.EN:
-        if section_type is Section.SHS:   return pd.read_csv(r"data/SHS.csv",header=0)
-        elif section_type is Section.RHS: return pd.read_csv(r"data/RHS.csv",header=0)
-        elif section_type is Section.CHS: return pd.read_csv(r"data/CHS_en.csv",header=0)
+    def __init__(self,section_type: Section, member_type: Member, code: Code):
+        if code is Code.AS:
+            if section_type is Section.SHS:   self.hs_data = pd.read_csv(r"data/SHS.csv",header=0)
+            elif section_type is Section.RHS: self.hs_data = pd.read_csv(r"data/RHS.csv",header=0)
+            elif section_type is Section.CHS: self.hs_data = pd.read_csv(r"data/CHS.csv",header=0)
+        elif code is Code.EN:
+            if section_type is Section.SHS:   self.hs_data = pd.read_csv(r"data/SHS.csv",header=0)
+            elif section_type is Section.RHS: self.hs_data = pd.read_csv(r"data/RHS.csv",header=0)
+            elif section_type is Section.CHS: self.hs_data = pd.read_csv(r"data/CHS_en.csv",header=0)
+
+    def pick_by_name(self, name: str):
+        return self.hs_data[self.hs_data['Dimensions'] == name]
+
+    def pick_by_size(self, d, t, b = 0):
+        if 'b' in self.hs_data.columns:
+            return self.hs_data.query(f'd == {d} and t == {t} and b == {b}')
+        else:
+            return self.hs_data.query(f'd == {d} and t == {t}')
 
 def st_lookup(hs_data, section_type: Section, member_type: Member, def_option = 0, def_reverse_axes = False):
     """
