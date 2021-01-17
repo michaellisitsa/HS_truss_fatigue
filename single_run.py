@@ -2,8 +2,10 @@ import Dimensions
 import Geometry
 import Stresses
 import forces
+import st_funcs
 import streamlit as st
 from Enum_vals import Section, Member, Code, Run
+import plotting_funcs
 
 def create_Dim(member:Member,code: Code):
     """Instantiate Dimensions"""
@@ -25,17 +27,13 @@ def create_Dim(member:Member,code: Code):
 def create_Geom(Dim_C,Dim_B):
     """Instantiate Geomery"""
     geom_container = st.beta_container()
-    Geom = Geometry.Geometry(Dim_C,Dim_B,Run.SINGLE)
-    Geom.dim_params()
-    st.latex(Geom.dim_params_latex)
-    Geom.st_geom_picker()
-    Geom.calc_overlap()
-    st.latex(Geom.overlap_latex)
-    Geom.check_geom()
+    e, chordspacing, L_chord, div_chord = st_funcs.st_geom_picker(Dim_C)
+    Geom = Geometry.Geometry(Dim_C, Dim_B,e, chordspacing, L_chord, div_chord, Run.SINGLE)
+    st.latex(Geom.check_geom_latex)
     Geom.st_message_geom(geom_container)
     force = forces.Forces()
     force.st_forces_picker()
-    fig = Geom.geom_plot_altair(force)
+    fig = plotting_funcs.geom_plot_altair(force=force,geom=Geom)
     st.altair_chart(fig)
     return Geom
 
