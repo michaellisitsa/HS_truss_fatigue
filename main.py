@@ -4,7 +4,7 @@ from handcalcs import handcalc
 #Import other files
 import Dimensions
 import Geometry
-import SCFs
+# import SCFs
 import single_run
 from Enum_vals import Section, Member, Code, Run, Joint
 
@@ -30,7 +30,7 @@ def main():
         fig_SCFo = SCF.SCF_o_plot()
         st.pyplot(fig_SCFo)
 
-    Stress = single_run.create_Stresses(Dim_C, Dim_B, Geom, force, SCF)
+    Stress = single_run.create_Stresses(force,SCF)
 
 if __name__ == '__main__':
     main()

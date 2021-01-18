@@ -1,11 +1,12 @@
 import Dimensions
 import Geometry
-import SCFs
+# import SCFs
 import Forces
-import Stresses
+# import Stresses
 import streamlit as st
 from Enum_vals import Joint, Section, Member, Code, Run
 from typing import Union
+
 
 from math import pi
 
@@ -43,18 +44,18 @@ def create_Geom(Dim_C,Dim_B,joint: Joint):
 def create_SCFs(Geom, joint: Joint):
     """Instantiate stress factors"""
     if joint is Joint.K:
-        SCF = SCFs.K_SCF(Geom, Run.SINGLE)
+        SCF = Geom.calc_SCFs()
+        # SCF = SCFs.K_SCF(Geom, Run.SINGLE)
         st.latex(SCF.latex)
     else:
-        SCF = SCFs.T_SCF(Geom, Run.SINGLE)
+        SCF = Geom.calc_SCFs()
+        # SCF = SCFs.T_SCF(Geom, Run.SINGLE)
         st.latex(SCF.latex)
     return SCF
 
-def create_Stresses(Dim_C: Union[Dimensions.database_sec,Dimensions.custom_sec],
-                    Dim_B: Union[Dimensions.database_sec,Dimensions.custom_sec],
-                    Geom: Geometry.K_joint, force, SCF):
-    MF_chord = Stresses.MF_func(Dim_C.section_type, Geom.gap, Member.CHORD)
-    MF_brace = Stresses.MF_func(Dim_B.section_type, Geom.gap, Member.BRACE)
-    Stress = Stresses.Stress(Run.SINGLE,force,Dim_C, Dim_B, SCF, Geom,MF_chord, MF_brace)
-    st.latex(Stress.stresses_latex)
+def create_Stresses(force, SCF: Union[Geometry.K_SCF,Geometry.T_SCF]):
+    MF_chord = Geometry.MF_func(SCF.Geom.Dim_C.section_type, SCF.Geom.gap, Member.CHORD)
+    MF_brace = Geometry.MF_func(SCF.Geom.Dim_B.section_type, SCF.Geom.gap, Member.BRACE)
+    Stress = SCF.calc_stresses(force,MF_chord,MF_brace)
+    st.latex(Stress.latex)
     return Stress
