@@ -25,6 +25,12 @@ class Geometry:
         self.L_chord = L_chord
         self.div_chord = div_chord
 
+class K_joint(Geometry):
+    def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],
+                      Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], 
+                      e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
+        super().__init__(Dim_C, Dim_B, e, chordspacing, L_chord, div_chord, run)
+
         args = {'b_0':self.Dim_C.b * u.m, # type: ignore
                 'h_0':self.Dim_C.d * u.m, # type: ignore
                 't_0':self.Dim_C.t * u.m, # type: ignore
@@ -107,6 +113,49 @@ class Geometry:
             container.error(self.message)
             st.stop()
 
+class T_joint(Geometry):
+    def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],
+                      Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], 
+                      L_chord, div_chord, theta, C_fixity, run: Run = Run.SINGLE):
+        super().__init__(Dim_C, Dim_B, 0., 0., L_chord, div_chord, run)
+        self.theta = theta
+        self.C_fixity = C_fixity
+        args = {'b_0':self.Dim_C.b * u.m, # type: ignore
+                'h_0':self.Dim_C.d * u.m, # type: ignore
+                't_0':self.Dim_C.t * u.m, # type: ignore
+                'b_1':self.Dim_B.b * u.m, # type: ignore
+                'h_1':self.Dim_B.d * u.m, # type: ignore
+                't_1':self.Dim_B.t * u.m, # type: ignore
+                'L_chord':self.L_chord * u.m, # type: ignore
+                'div_chord':self.div_chord,
+                'C':self.C_fixity
+                }
+        
+        def check_geom_func(b_0,h_0,t_0,b_1,h_1,t_1,L_chord,div_chord,C):
+            """Calculate the dimensional variables beta, 
+            2*gamma and tau
+            Calculate the overlap percentage 
+            'Ov' to be used in the calculation"""
+            beta = b_1 / b_0 #Ratio of brace to chord width, where 0.2 <= beta <= 1.0
+            twogamma = b_0 / t_0 #Ratio of chord width to 2*thickness, where 15 <= 2*gamma <= 64
+            tau = t_1 / t_0 #Ratio of brace to chord thickness, where 0.2 < tau <= 1.0
+            alpha = 4 * (L_chord / div_chord) / b_0 #2 * span/depth of chord 4 <= alpha <= 40
+            C_1 = 2 * (C - 0.5)
+            C_2 = C / 2
+            C_3 = C / 5
+            return beta, twogamma, tau, alpha, C_1, C_2, C_3
+
+        self.check_geom_latex, (self.beta, 
+                                self.twogamma, 
+                                self.tau, 
+                                self.alpha, 
+                                self.C_1, 
+                                self.C_2, 
+                                self.C_3) = helper_funcs.func_by_run_type(self.run, args, check_geom_func)
+            
+
+
+        
 def st_geom_picker(Dim_C: Dimensions.Dimensions):
     """
     Create Streamlit input boxes for various geometry properties, and return those.
@@ -117,3 +166,12 @@ def st_geom_picker(Dim_C: Dimensions.Dimensions):
     L_chord = st.sidebar.number_input('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
     div_chord = st.sidebar.number_input('Chord divisions',1,20,4,step=1,format='%i')
     return e, chordspacing, L_chord, div_chord
+
+def st_length_picker(Dim_C: Dimensions.Dimensions):
+    """
+    Create Streamlit input boxes for various geometry properties, and return those.
+    Dim_C: Dimension of chord check for CHS which must have zero eccentricity
+    """
+    L_chord = st.sidebar.number_input('Length of Chord (mm)',100,30000,8000,step=100,format='%i') / 1000
+    div_chord = st.sidebar.number_input('Chord divisions',1,20,4,step=1,format='%i')
+    return L_chord, div_chord
