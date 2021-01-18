@@ -223,8 +223,6 @@ class K_joint(Geometry):
         )
 
         #Unicode arrow codes are: ← → U-2190 U-2192 ⤾ ⤿ U-293e U-293f 
-        Fx_left = 240
-        Fx_right = 220
         a = {'x': [-(br_bot_left_x + br_top_x + p),
                         br_bot_left_x + br_top_x + p,
                         -(br_bot_left_x + br_top_x+ p/2),
@@ -389,8 +387,27 @@ class T_joint(Geometry):
         self.success, self.message = success, message
 
     def plot_geom(self,force: Forces.Forces):
-        #TODO - Implement plot for T-joint
-        pass
+        """
+        Plot the geometry of the chord and brace members including centerlines.
+        """
+        x_chord = 0.5
+        source_chord = pd.DataFrame({'x':np.array([-x_chord,x_chord]),
+                                'y':np.array([-self.Dim_C.d/2,-self.Dim_C.d/2]),
+                                'y2':np.array([self.Dim_C.d/2,self.Dim_C.d/2])})
+        chord_rect = alt.Chart(source_chord).mark_area(opacity=0.6).encode(
+                                    x='x',
+                                    y='y',
+                                    y2='y2',
+                                    color=alt.value("#FF0000"))
+        source_brace = pd.DataFrame({'x':np.array([-self.Dim_B.d/2,self.Dim_B.d/2]),
+                                'y':np.array([self.Dim_C.d/2,self.Dim_C.d/2]),
+                                'y2':np.array([self.Dim_C.d/2 + 0.5,self.Dim_C.d/2 + 0.5])})
+        brace_rect = alt.Chart(source_brace).mark_area(opacity=0.6).encode(
+                                    x='x',
+                                    y='y',
+                                    y2='y2',
+                                    color=alt.value("#1f77b4"))
+        return chord_rect + brace_rect
 
 def st_geom_Kjoint_picker(Dim_C: Dimensions.Dimensions):
     """

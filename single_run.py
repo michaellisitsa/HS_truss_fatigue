@@ -28,21 +28,16 @@ def create_Geom(Dim_C,Dim_B,joint: Joint):
     if joint is Joint.K:
         e, chordspacing, L_chord, div_chord = Geometry.st_geom_Kjoint_picker(Dim_C)
         Geom = Geometry.K_joint(Dim_C, Dim_B,e, chordspacing, L_chord, div_chord, Run.SINGLE)
-        st.latex(Geom.latex)
-        Geom.check_geom()
-        Geom.st_message_geom(geom_container)
-        force = Forces.Forces()
-        force.st_forces_picker()
-        fig = Geom.plot_geom(force=force)
-        st.altair_chart(fig)
     else:
         L_chord, div_chord, angle = Geometry.st_geom_Tjoint_picker(Dim_C)
         Geom = Geometry.T_joint(Dim_C, Dim_B, L_chord, div_chord, angle, 0.7, Run.SINGLE)
-        Geom.check_geom()
-        Geom.st_message_geom(geom_container)
-        st.latex(Geom.latex)
-        force = Forces.Forces()
-        force.st_forces_picker()
+    st.latex(Geom.latex)
+    Geom.check_geom()
+    Geom.st_message_geom(geom_container)
+    force = Forces.Forces()
+    force.st_forces_picker()
+    fig = Geom.plot_geom(force=force)
+    st.altair_chart(fig)
     return Geom, force
 
 def create_SCFs(Geom, joint: Joint):

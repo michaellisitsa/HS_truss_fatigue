@@ -51,6 +51,7 @@ class Stress:
                                 self.S_rhsbrace
                                 ) = helper_funcs.func_by_run_type(run, args, stress_func)
 
+
 def MF_func(section_type: Section,gap: bool,member: Member):
     if member is Member.CHORD:
         #Chords for all member types have same MF
