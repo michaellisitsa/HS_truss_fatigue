@@ -44,8 +44,8 @@ class SCFs:
             self.SCF_bax_min = np.interp(self.Geom.theta*180/pi,[30,45,60],[2.64,2.30,2.12])
             
             def SCF_func(beta,twogamma,tau,O_v,g_prime,theta,SCF_ochax, SCF_obax, SCF_bax_min):
-                SCF_chax = max(2,(twogamma/6)**0.4 * (tau/0.5)**1.1 * SCF_ochax)
-                SCF_bax = max(SCF_bax_min,sqrt(twogamma/6) * sqrt(tau/0.5) * SCF_obax)
+                SCF_chax = max(2,(twogamma/24)**0.4 * (tau/0.5)**1.1 * SCF_ochax)
+                SCF_bax = max(SCF_bax_min,sqrt(twogamma/24) * sqrt(tau/0.5) * SCF_obax)
                 SCF_chch = max(2,1.2*(tau/0.5)**0.3 * sin(theta)**-0.9)
                 return SCF_chax, SCF_bax, SCF_chch
         

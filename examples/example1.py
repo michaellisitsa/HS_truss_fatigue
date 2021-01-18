@@ -11,6 +11,7 @@ import Dimensions
 import Geometry
 import SCFs
 import Forces
+import Stresses
 import streamlit as st
 from Enum_vals import Section, Member, Code, Run
 import plotting_funcs
@@ -35,3 +36,11 @@ Geom = Geometry.Geometry(Dim, Dim2, -0.1, 2.0, 6.0, 3.0, Run.SINGLE)
 SCF = SCFs.SCFs(Geom, Run.SINGLE)
 print(SCF.SCF_chax)
 SCF.SCF_o_plot()
+
+#This generates stresses
+force = Forces.Forces(P_chord = 242000, P_brace = 17200, M_ip_chord = 784)
+print(vars(force))
+MF_chord = Stresses.MF_func(Dim.section_type, Geom.gap, Member.CHORD)
+MF_brace = Stresses.MF_func(Dim2.section_type, Geom.gap, Member.BRACE)
+Stress = Stresses.Stress(Run.ALL_SECTIONS,force, Dim, Dim2, SCF, Geom, MF_chord, MF_brace)
+print(vars(Stress))

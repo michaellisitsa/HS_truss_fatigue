@@ -45,6 +45,6 @@ def create_Stresses(Dim_C: Union[Dimensions.database_sec,Dimensions.custom_sec],
                     Geom: Geometry.Geometry, force, SCF):
     MF_chord = Stresses.MF_func(Dim_C.section_type, Geom.gap, Member.CHORD)
     MF_brace = Stresses.MF_func(Dim_B.section_type, Geom.gap, Member.BRACE)
-    Stress = Stresses.Stress(Run.SINGLE,force,Dim_C, Dim_B, Geom,MF_chord, MF_brace)
+    Stress = Stresses.Stress(Run.SINGLE,force,Dim_C, Dim_B, SCF, Geom,MF_chord, MF_brace)
     st.latex(Stress.stresses_latex)
     return Stress

@@ -1,6 +1,7 @@
 from Forces import Forces
 from Dimensions import Dimensions, custom_sec, database_sec
 from Geometry import Geometry
+from SCFs import SCFs
 import helper_funcs
 from Enum_vals import Section, Member, Code, Run
 
@@ -15,6 +16,7 @@ class Stress:
                        forces: Forces, 
                        Dim_C: Union[database_sec,custom_sec], 
                        Dim_B: Union[database_sec,custom_sec],
+                       SCF: SCFs,
                        Geom: Geometry,
                        MF_chord, 
                        MF_brace):
@@ -27,9 +29,12 @@ class Stress:
                 'P_brace':forces.P_brace * u.N, #type: ignore
                 'P_chord':forces.P_chord * u.N, #type: ignore
                 'Mip_chord':forces.M_ip_chord * u.N * u.m, #type: ignore
-                'theta':Geom.theta
+                'theta':Geom.theta,
+                'SCF_chax':SCF.SCF_chax,
+                'SCF_bax':SCF.SCF_bax,
+                'SCF_chch':SCF.SCF_chch
                 }
-        def stress_func(MF_chord, MF_brace, A_chord, A_brace, y_chord, Ix_chord, P_brace, P_chord, Mip_chord, theta):
+        def stress_func(MF_chord, MF_brace, A_chord, A_brace, y_chord, Ix_chord, P_brace, P_chord, Mip_chord, theta, SCF_chax, SCF_bax, SCF_chch):
             """
             Calculate the stresses in the members in order:
             - nominal stresses for each load condition (forces x magnification factors)
@@ -38,10 +43,12 @@ class Stress:
             sigma_braceax = MF_brace * P_brace / A_brace
             F_chordLC2 = P_chord - P_brace * cos(theta)
             sigma_chordax = MF_chord * F_chordLC2 / A_chord + Mip_chord * y_chord / Ix_chord
-            return sigma_braceax, sigma_chordax
+            S_rhschord = SCF_chax * sigma_braceax + SCF_chch * sigma_chordax
+            S_rhsbrace = SCF_bax * sigma_braceax
+            return S_rhschord, S_rhsbrace
 
-        self.stresses_latex, (self.sigma_braceax,
-                                self.sigma_chordax
+        self.stresses_latex, (self.S_rhschord,
+                                self.S_rhsbrace
                                 ) = helper_funcs.func_by_run_type(run, args, stress_func)
 
 def MF_func(section_type: Section,gap: bool,member: Member):
