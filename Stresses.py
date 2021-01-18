@@ -18,7 +18,7 @@ class Stress:
                        Dim_B: Union[database_sec,custom_sec],
                        SCF: SCFs,
                        Geom: Geometry,
-                       MF_chord, 
+                       MF_chord,
                        MF_brace):
         args = {'MF_chord':MF_chord,
                 'MF_brace':MF_brace,

@@ -14,6 +14,7 @@ class Forces:
     
     def st_forces_picker(self):
         """Create Force Inputs via a Streamlit input function"""
+        st.sidebar.subheader("Force Inputs:")
         self.P_chord = st.sidebar.number_input("P_chord (kN)",value=70.0,step=10.0) * 1000 #N
         self.P_brace = st.sidebar.number_input("P_brace (kN)",value=50.0,step=10.0) * 1000 #N
         self.M_op_chord = st.sidebar.number_input("M_op_chord (kNm)",value=5.0,step=10.0) * 1000 #Nm

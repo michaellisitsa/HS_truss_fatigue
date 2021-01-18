@@ -29,7 +29,7 @@ class Run(enum.Enum):
 
 class Joint(enum.Enum):
    """Choose whether T/Y-joint or K-joint"""
+   K = enum.auto()
    T = enum.auto()
    Y = enum.auto()
-   K = enum.auto()
    

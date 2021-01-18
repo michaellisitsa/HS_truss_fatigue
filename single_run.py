@@ -5,7 +5,6 @@ import Forces
 import Stresses
 import streamlit as st
 from Enum_vals import Joint, Section, Member, Code, Run
-import plotting_funcs
 from typing import Union
 
 from math import pi
@@ -27,31 +26,33 @@ def create_Geom(Dim_C,Dim_B,joint: Joint):
     """Instantiate Geomery"""
     geom_container = st.beta_container()
     if joint is Joint.K:
-        e, chordspacing, L_chord, div_chord = Geometry.st_geom_picker(Dim_C)
+        e, chordspacing, L_chord, div_chord = Geometry.st_geom_Kjoint_picker(Dim_C)
         Geom = Geometry.K_joint(Dim_C, Dim_B,e, chordspacing, L_chord, div_chord, Run.SINGLE)
-        st.latex(Geom.check_geom_latex)
+        st.latex(Geom.latex)
+        Geom.check_geom()
         Geom.st_message_geom(geom_container)
         force = Forces.Forces()
         force.st_forces_picker()
-        fig = plotting_funcs.geom_plot_altair(force=force,geom=Geom)
+        fig = Geom.plot_geom(force=force)
         st.altair_chart(fig)
     else:
-        L_chord, div_chord = Geometry.st_length_picker(Dim_C)
-        Geom = Geometry.T_joint(Dim_C, Dim_B, L_chord, div_chord, pi / 2, 0.7, Run.SINGLE)
-        st.latex(Geom.check_geom_latex)
+        L_chord, div_chord, angle = Geometry.st_geom_Tjoint_picker(Dim_C)
+        Geom = Geometry.T_joint(Dim_C, Dim_B, L_chord, div_chord, angle, 0.7, Run.SINGLE)
+        Geom.check_geom()
+        Geom.st_message_geom(geom_container)
+        st.latex(Geom.latex)
         force = Forces.Forces()
         force.st_forces_picker()
-
     return Geom, force
 
 def create_SCFs(Geom, joint: Joint):
     """Instantiate stress factors"""
     if joint is Joint.K:
         SCF = SCFs.K_SCF(Geom, Run.SINGLE)
-        st.latex(SCF.SCF_latex)
+        st.latex(SCF.latex)
     else:
         SCF = SCFs.T_SCF(Geom, Run.SINGLE)
-        st.latex(SCF.SCF_latex)
+        st.latex(SCF.latex)
     return SCF
 
 def create_Stresses(Dim_C: Union[Dimensions.database_sec,Dimensions.custom_sec],

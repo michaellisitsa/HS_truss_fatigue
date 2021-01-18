@@ -29,6 +29,7 @@ class SCFs:
         Values vary depending on Section type and whether a gap exists"""
         self.run = run
         self.SCF_ochax, self.SCF_obax, self.SCF_bax_min = None, None, None
+        self.latex = None
 
 class K_SCF(SCFs):
     def __init__(self,Geom: Geometry.K_joint, run: Run = Run.SINGLE):
@@ -90,7 +91,7 @@ class K_SCF(SCFs):
             'SCF_obax':self.SCF_obax,
             'SCF_bax_min':self.SCF_bax_min}
             
-        self.SCF_latex, (self.SCF_chax,
+        self.latex, (self.SCF_chax,
                                 self.SCF_bax,
                                 self.SCF_chch) = helper_funcs.func_by_run_type(self.run,args,SCF_func)
 
@@ -167,14 +168,17 @@ class T_SCF(SCFs):
 
                 return SCF_bsaddleax, SCF_chsaddleax, SCF_chcrownax, SCF_bcrownax, SCF_chcrownipb, SCF_bcrownipb, SCF_chsaddleopb, SCF_bsaddleopb
 
-            self.SCF_latex, (self.SCF_bsaddleax, 
-                             self.SCF_chsaddleax, 
-                             self.SCF_chcrownax, 
+            self.latex, (self.SCF_bsaddleax,
+                             self.SCF_chsaddleax,
+                             self.SCF_chcrownax,
                              self.SCF_bcrownax,
                              self.SCF_chcrownipb,
                              self.SCF_bcrownipb,
                              self.SCF_chsaddleopb,
                              self.SCF_bsaddleopb) = helper_funcs.func_by_run_type(self.run,args,SCF_func)
+        elif self.Geom.Dim_C.section_type is not Section.CHS:
+            print("Method not implemented")
+
 
 def st_SCF_op_picker(self):
     self.SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
