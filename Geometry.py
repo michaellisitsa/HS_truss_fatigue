@@ -437,7 +437,7 @@ class SCFs(ABC):
 
     @abstractmethod
     def calc_stresses(self,force: Forces.Forces, MF_chord, MF_brace):
-        pass
+        return T_Stress(self,force,MF_chord, MF_brace)
 
 class K_SCF(SCFs):
     def __init__(self,Geom: K_joint, run: Run = Run.SINGLE):
@@ -523,8 +523,8 @@ class K_SCF(SCFs):
             ax2.set_aspect(0.25)
             return fig
 
-    def calc_stresses(self,force: Forces.Forces, MF_chord, MF_brace):
-        return Stress(self,force,MF_chord, MF_brace)
+    def calc_stresses(self,force: Forces.Forces, MF_chord = 1., MF_brace = 1.):
+        return K_Stress(self,force,MF_chord, MF_brace)
 
     # def SCF_ochax_bokeh(self):
     #     SCF_ochax_img = r"data/SCFochax.png"
@@ -597,8 +597,8 @@ class T_SCF(SCFs):
             fig, (ax1, ax2) = plt.subplots(1,2)
             return fig
 
-    def calc_stresses(self,force: Forces.Forces, MF_chord, MF_brace):
-        return Stress(self,force,MF_chord, MF_brace)
+    def calc_stresses(self,force: Forces.Forces, MF_chord = 1., MF_brace = 1.):
+        return T_Stress(self,force)
 
 def st_geom_Kjoint_picker(Dim_C: Dimensions.Dimensions):
     """
@@ -627,24 +627,34 @@ def st_SCF_op_picker(self):
     self.SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
     self.SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
 
-class Stress:
-    def __init__(self, SCF,
+
+class Stress(ABC):
+    """Base class used for different stress equations for different types of joints"""
+    def __init__(self, forces: Forces.Forces):
+        self.forces = forces
+
+class K_Stress(Stress):
+    def __init__(self, SCF: K_SCF,
                        forces: Forces.Forces, 
                        MF_chord,
                        MF_brace):
-        args = {'MF_chord':MF_chord,
-                'MF_brace':MF_brace,
-                'A_chord':SCF.Geom.Dim_C.area * u.m**2, #type: ignore
-                'A_brace':SCF.Geom.Dim_B.area* u.m**2, #type: ignore
-                'y_chord':SCF.Geom.Dim_C.d * u.m / 2, #type:ignore
-                'Ix_chord':SCF.Geom.Dim_C.Ix * u.m**4, #type:ignore
-                'P_brace':forces.P_brace * u.N, #type: ignore
-                'P_chord':forces.P_chord * u.N, #type: ignore
-                'Mip_chord':forces.M_ip_chord * u.N * u.m, #type: ignore
-                'theta':SCF.Geom.theta,
-                'SCF_chax':SCF.SCF_chax,
-                'SCF_bax':SCF.SCF_bax,
-                'SCF_chch':SCF.SCF_chch
+        self.SCF = SCF
+        self.MF_chord = MF_chord
+        self.MF_brace = MF_brace
+        super().__init__(forces)
+        args = {'MF_chord':self.MF_chord,
+                'MF_brace':self.MF_brace,
+                'A_chord':self.SCF.Geom.Dim_C.area * u.m**2, #type: ignore
+                'A_brace':self.SCF.Geom.Dim_B.area* u.m**2, #type: ignore
+                'y_chord':self.SCF.Geom.Dim_C.d * u.m / 2, #type:ignore
+                'Ix_chord':self.SCF.Geom.Dim_C.Ix * u.m**4, #type:ignore
+                'P_brace':self.forces.P_brace * u.N, #type: ignore
+                'P_chord':self.forces.P_chord * u.N, #type: ignore
+                'Mip_chord':self.forces.M_ip_chord * u.N * u.m, #type: ignore
+                'theta':self.SCF.Geom.theta,
+                'SCF_chax':self.SCF.SCF_chax,
+                'SCF_bax':self.SCF.SCF_bax,
+                'SCF_chch':self.SCF.SCF_chch
                 }
         def stress_func(MF_chord, MF_brace, A_chord, A_brace, y_chord, Ix_chord, P_brace, P_chord, Mip_chord, theta, SCF_chax, SCF_bax, SCF_chch):
             """
@@ -661,8 +671,38 @@ class Stress:
 
         self.latex, (self.S_rhschord,
                                 self.S_rhsbrace
-                                ) = helper_funcs.func_by_run_type(SCF.Geom.run, args, stress_func)
+                                ) = helper_funcs.func_by_run_type(self.SCF.Geom.run, args, stress_func)
 
+
+class T_Stress(Stress):
+    def __init__(self, SCF: T_SCF, forces: Forces.Forces):
+        super().__init__(forces)
+        self.SCF = SCF
+        args = {'SCF_bsaddleax':self.SCF.SCF_bsaddleax,
+                'SCF_chsaddleax':self.SCF.SCF_chsaddleax,
+                'SCF_chcrownax':self.SCF.SCF_chcrownax,
+                'SCF_bcrownax':self.SCF.SCF_bcrownax,
+                'SCF_chcrownipb':self.SCF.SCF_chcrownipb,
+                'SCF_bcrownipb':self.SCF.SCF_bcrownipb,
+                'SCF_chsaddleopb':self.SCF.SCF_chsaddleopb,
+                'SCF_bsaddleopb':self.SCF.SCF_bsaddleopb,
+                'P_brace':self.forces.P_brace * u.N, #type: ignore
+                'Mop_brace':self.forces.M_op_brace * u.N * u.m, #type: ignore
+                'Mip_brace':self.forces.M_ip_brace * u.N * u.m, #type: ignore
+                'y_brace':self.SCF.Geom.Dim_B.d * u.m / 2, #type: ignore
+                'x_brace':self.SCF.Geom.Dim_B.b * u.m / 2, #type: ignore
+                'Iy_brace':self.SCF.Geom.Dim_B.Iy * u.m**4, #type:ignore
+                'Ix_brace':self.SCF.Geom.Dim_B.Ix * u.m**4, #type: ignore
+                'A_brace':self.SCF.Geom.Dim_B.area* u.m**2} #type:ignore
+
+        def stress_func(SCF_bsaddleax,SCF_chsaddleax,SCF_chcrownax,SCF_bcrownax,SCF_chcrownipb,SCF_bcrownipb,SCF_chsaddleopb,SCF_bsaddleopb, P_brace, Mop_brace, Mip_brace, y_brace, x_brace, Ix_brace, Iy_brace, A_brace):
+            F_chsaddle = SCF_chsaddleax * P_brace/A_brace + SCF_chsaddleopb * Mop_brace * (x_brace / Iy_brace)
+            F_chcrown = SCF_chcrownax * P_brace/A_brace + SCF_chcrownipb * Mip_brace * (y_brace / Ix_brace)
+            F_bsaddle = SCF_bsaddleax * P_brace/A_brace + SCF_bsaddleopb * Mop_brace * (x_brace / Iy_brace)
+            F_bcrown = SCF_bcrownax * P_brace/A_brace + SCF_bcrownipb * Mip_brace * (y_brace / Ix_brace)
+            return F_chsaddle, F_chcrown, F_bsaddle, F_bcrown
+
+        self.latex, (F_chsaddle, F_chcrown, F_bsaddle, F_bcrown) = helper_funcs.func_by_run_type(self.SCF.Geom.run, args, stress_func)
 
 def MF_func(section_type: Section,gap: bool,member: Member):
     if member is Member.CHORD:

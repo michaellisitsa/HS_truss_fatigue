@@ -54,8 +54,12 @@ def create_SCFs(Geom, joint: Joint):
     return SCF
 
 def create_Stresses(force, SCF: Union[Geometry.K_SCF,Geometry.T_SCF]):
-    MF_chord = Geometry.MF_func(SCF.Geom.Dim_C.section_type, SCF.Geom.gap, Member.CHORD)
-    MF_brace = Geometry.MF_func(SCF.Geom.Dim_B.section_type, SCF.Geom.gap, Member.BRACE)
-    Stress = SCF.calc_stresses(force,MF_chord,MF_brace)
+    result = isinstance(SCF, Geometry.K_SCF)
+    if result:
+        MF_chord = Geometry.MF_func(SCF.Geom.Dim_C.section_type, SCF.Geom.gap, Member.CHORD)
+        MF_brace = Geometry.MF_func(SCF.Geom.Dim_B.section_type, SCF.Geom.gap, Member.BRACE)
+        Stress = SCF.calc_stresses(force,MF_chord,MF_brace)
+    else:
+        Stress = SCF.calc_stresses(force)
     st.latex(Stress.latex)
     return Stress
