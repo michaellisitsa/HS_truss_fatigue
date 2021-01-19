@@ -3,7 +3,8 @@ from Enum_vals import Section, Member, Code, Run
 
 class Forces:
     """
-    Constructs an object containing forces necessary for the calculations
+    Constructs an object containing forces necessary for the calculations,
+    Not all forces will be required for each type of joint
     """
     def __init__(self, P_chord=0., P_brace=0., M_op_chord=0., M_ip_chord=0., M_op_brace=0., M_ip_brace=0.):
         self.P_chord = P_chord
