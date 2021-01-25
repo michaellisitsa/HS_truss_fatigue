@@ -28,12 +28,11 @@ def create_Geom(Dim_C,Dim_B,joint: Joint):
     geom_container = st.beta_container()
     if joint is Joint.K:
         e, chordspacing, L_chord, div_chord = Geometry.st_geom_Kjoint_picker(Dim_C)
-        Geom = Geometry.K_joint(Dim_C, Dim_B,e, chordspacing, L_chord, div_chord, Run.SINGLE)
+        Geom = Geometry.K_joint(Dim_C, Dim_B,e, chordspacing, L_chord, div_chord, Run.HANDCALCS)
     else:
         L_chord, div_chord, angle = Geometry.st_geom_Tjoint_picker(Dim_C)
-        Geom = Geometry.T_joint(Dim_C, Dim_B, L_chord, div_chord, angle, 0.7, Run.SINGLE)
+        Geom = Geometry.T_joint(Dim_C, Dim_B, L_chord, div_chord, angle, 0.7, Run.HANDCALCS)
     st.latex(Geom.latex)
-    Geom.check_geom()
     Geom.st_message_geom(geom_container)
     force = Forces.Forces()
     force.st_forces_picker()
@@ -60,6 +59,8 @@ def create_Stresses(force, SCF: Union[Geometry.K_SCF,Geometry.T_SCF]):
         MF_brace = Geometry.MF_func(SCF.Geom.Dim_B.section_type, SCF.Geom.gap, Member.BRACE)
         Stress = SCF.calc_stresses(force,MF_chord,MF_brace)
     else:
-        Stress = SCF.calc_stresses(force)
+        MF_chord = 1.0
+        MF_brace = 1.0
+        Stress = SCF.calc_stresses(force,MF_chord,MF_brace)
     st.latex(Stress.latex)
     return Stress

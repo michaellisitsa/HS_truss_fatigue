@@ -23,7 +23,7 @@ for Pc, Pb, Mipb in zip(P_chord1, P_brace1, M_ipchord):
     hs_chosen = section_db.pick_by_size(400,16,400)
     Dim_C = Dimensions.custom_sec(Section.RHS,Member.CHORD, d=0.4, b=0.4, t=0.016)
     Dim_B = Dimensions.database_sec(Section.SHS,Member.CHORD,section_db.hs_data,hs_chosen,False)
-    Geom = Geometry.K_joint(Dim_C,Dim_B,-0.1,2.0,6.0,3.0,Run.ALL_SECTIONS)
+    Geom = Geometry.K_joint(Dim_C,Dim_B,-0.1,2.0,6.0,3.0,Run.API)
     SCF = Geom.calc_SCFs()
     force = Forces.Forces(P_chord = Pc, P_brace = Pb, M_ip_chord = Mipb)
     Stress = SCF.calc_stresses(force)

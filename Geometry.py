@@ -29,7 +29,7 @@ from abc import ABC, abstractmethod
 class Geometry(ABC):
     def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],
                       Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], 
-                      e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
+                      e, chordspacing, L_chord, div_chord, run: Run = Run.HANDCALCS):
         self.Dim_C = Dim_C
         self.Dim_B = Dim_B
         self.run = run
@@ -68,7 +68,7 @@ class Geometry(ABC):
 class K_joint(Geometry):
     def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],
                       Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], 
-                      e, chordspacing, L_chord, div_chord, run: Run = Run.SINGLE):
+                      e, chordspacing, L_chord, div_chord, run: Run = Run.HANDCALCS):
         super().__init__(Dim_C, Dim_B, e, chordspacing, L_chord, div_chord, run)
 
         args = {'b_0':self.Dim_C.b * u.m, # type: ignore
@@ -321,7 +321,7 @@ class K_joint(Geometry):
 class T_joint(Geometry):
     def __init__(self,Dim_C: Union[Dimensions.custom_sec,Dimensions.database_sec],
                       Dim_B: Union[Dimensions.custom_sec,Dimensions.database_sec], 
-                      L_chord, div_chord, theta, C_fixity, run: Run = Run.SINGLE):
+                      L_chord, div_chord, theta, C_fixity, run: Run = Run.HANDCALCS):
         super().__init__(Dim_C, Dim_B, 0., 0., L_chord, div_chord, run)
         self.theta = theta
         self.C_fixity = C_fixity
@@ -422,7 +422,7 @@ class T_joint(Geometry):
 
 class SCFs(ABC):
     """Base class used for initialising above"""
-    def __init__(self, run: Run = Run.SINGLE):
+    def __init__(self, run: Run = Run.HANDCALCS):
         """Calculate the stress concentration factors
         Values vary depending on Section type and whether a gap exists"""
         self.run = run
@@ -431,10 +431,10 @@ class SCFs(ABC):
 
     @abstractmethod
     def calc_stresses(self,force: Forces.Forces, MF_chord, MF_brace):
-        return T_Stress(self,force,MF_chord, MF_brace)
+        pass
 
 class K_SCF(SCFs):
-    def __init__(self,Geom: K_joint, run: Run = Run.SINGLE):
+    def __init__(self,Geom: K_joint, run: Run = Run.HANDCALCS):
         self.Geom = Geom
         super().__init__(run)
 
@@ -536,7 +536,7 @@ class K_SCF(SCFs):
     #     st.bokeh_chart(p)
 
 class T_SCF(SCFs):
-    def __init__(self,Geom: T_joint, run: Run = Run.SINGLE):
+    def __init__(self,Geom: T_joint, run: Run = Run.HANDCALCS):
         self.Geom = Geom
         super().__init__(run)
 
@@ -592,7 +592,7 @@ class T_SCF(SCFs):
             return fig
 
     def calc_stresses(self,force: Forces.Forces, MF_chord = 1., MF_brace = 1.):
-        return T_Stress(self,force)
+        return T_Stress(self,force,MF_chord,MF_brace)
 
 def st_geom_Kjoint_picker(Dim_C: Dimensions.Dimensions):
     """
@@ -619,8 +619,7 @@ def st_geom_Tjoint_picker(Dim_C: Dimensions.Dimensions):
 
 def st_SCF_op_picker(self):
     self.SCF_ch_op = st.sidebar.number_input("SCF_ch_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
-    self.SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1)
-
+    self.SCF_br_op = st.sidebar.number_input("SCF_br_op Input",min_value=1.0,max_value=10.0,value=2.0,step=0.1) 
 
 class Stress(ABC):
     """Base class used for different stress equations for different types of joints"""
@@ -667,9 +666,8 @@ class K_Stress(Stress):
                                 self.S_rhsbrace
                                 ) = helper_funcs.func_by_run_type(self.SCF.Geom.run, args, stress_func)
 
-
 class T_Stress(Stress):
-    def __init__(self, SCF: T_SCF, forces: Forces.Forces):
+    def __init__(self, SCF: T_SCF, forces: Forces.Forces, MF_chord, MF_brace):
         super().__init__(forces)
         self.SCF = SCF
         args = {'SCF_bsaddleax':self.SCF.SCF_bsaddleax,

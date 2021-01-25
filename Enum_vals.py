@@ -24,8 +24,8 @@ class Code(enum.Enum):
 
 class Run(enum.Enum):
    """Choose the type of run"""
-   SINGLE = enum.auto() #Calculates based on 1 set of inputs with handcalcs
-   ALL_SECTIONS = enum.auto() #Calculates based on a set of inputs from a database of sections
+   HANDCALCS = enum.auto() #Calculates based on 1 set of inputs with handcalcs
+   API = enum.auto() #Calculates based on a set of inputs from a database of sections
 
 class Joint(enum.Enum):
    """Choose whether T/Y-joint or K-joint"""
