@@ -49,10 +49,6 @@ class Geometry(ABC):
         self.theta = None
 
     @abstractmethod
-    def check_geom(self):
-        pass
-
-    @abstractmethod
     def plot_geom(self, force: Forces.Forces):
         pass
 
@@ -112,7 +108,6 @@ class K_joint(Geometry):
                                 self.theta,
                                 self.g_prime) = helper_funcs.func_by_run_type(self.run, args, check_geom_func)
 
-    def check_geom(self):
         #Check for acceptable angles
         if 30*pi/180 < self.theta < 60 * pi/180:
             success = True
@@ -363,7 +358,6 @@ class T_joint(Geometry):
                     self.C_2, 
                     self.C_3) = helper_funcs.func_by_run_type(self.run, args, check_geom_func)
         
-    def check_geom(self):
         #Check for acceptable angles
         if 30*pi/180 <= self.theta <= 90 * pi/180:
             success = True

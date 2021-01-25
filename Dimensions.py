@@ -101,10 +101,10 @@ class Section_DB:
             elif section_type is Section.RHS: self.hs_data = pd.read_csv(r"data/RHS.csv",header=0)
             elif section_type is Section.CHS: self.hs_data = pd.read_csv(r"data/CHS_en.csv",header=0)
 
-    def pick_by_name(self, name: str):
+    def pick_by_name(self, name: str) -> pd.DataFrame:
         return self.hs_data[self.hs_data['Dimensions'] == name]
 
-    def pick_by_size(self, d, t, b = 0):
+    def pick_by_size(self, d, t, b = 0) -> pd.DataFrame:
         if 'b' in self.hs_data.columns:
             return self.hs_data.query(f'd == {d} and t == {t} and b == {b}')
         else:
