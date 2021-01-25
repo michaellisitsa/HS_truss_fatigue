@@ -12,16 +12,18 @@ import Geometry
 import Forces
 import streamlit as st
 from Enum_vals import Section, Member, Code, Run
+import numpy as np
 
 #Create a Dimensions object based on the type of section and its dimensions.
 #The object contains calculated section properties from the section-properties module in SI units
-P_chord1 = [242_000, 100_000, 40_000]
-P_brace1 = [70_000, 20_000, 10_000]
-M_ipchord = [800, 1_200,1_000]
+P_chord1 = np.arange(0,100,2)#[242_000, 100_000, 40_000]
+P_brace1 = np.arange(30,130,2)#[70_000, 20_000, 10_000]
+M_ipchord = np.ones(100)#[800, 1_200,1_000]
 for Pc, Pb, Mipb in zip(P_chord1, P_brace1, M_ipchord):
     section_db = Dimensions.Section_DB(Section.SHS,Member.CHORD,Code.AS)
     hs_chosen = section_db.pick_by_size(400,16,400)
-    Dim_C = Dimensions.custom_sec(Section.RHS,Member.CHORD, d=0.4, b=0.4, t=0.016)
+    # Dim_C = Dimensions.custom_sec(Section.RHS,Member.CHORD, d=0.4, b=0.4, t=0.016)
+    Dim_C = Dimensions.database_sec(Section.SHS,Member.CHORD,section_db.hs_data,hs_chosen,False)
     Dim_B = Dimensions.database_sec(Section.SHS,Member.CHORD,section_db.hs_data,hs_chosen,False)
     Geom = Geometry.K_joint(Dim_C,Dim_B,-0.1,2.0,6.0,3.0,Run.API)
     SCF = Geom.calc_SCFs()
